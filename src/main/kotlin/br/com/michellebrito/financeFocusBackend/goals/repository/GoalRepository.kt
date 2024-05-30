@@ -6,6 +6,7 @@ import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.Firestore
 import com.google.firebase.cloud.FirestoreClient
+import com.google.gson.Gson
 import org.springframework.stereotype.Repository
 import java.util.UUID
 import java.util.concurrent.ExecutionException
@@ -24,13 +25,13 @@ class GoalRepository {
         return GOAL_PREXIF + UUID.randomUUID().toString()
     }
 
-    fun getGoal(id: String): UpdateGoalRequest? {
+    fun getGoal(id: String): String? {
         val documentReference = firestore.collection(GOALS_COLLECTION).document(id)
         val collectionFuture: ApiFuture<DocumentSnapshot> = documentReference.get()
         val document: DocumentSnapshot = collectionFuture.get()
 
         if (document.exists()) {
-            return document.toObject(UpdateGoalRequest::class.java)
+            return Gson().toJson(document.data)
         }
         return null
     }
@@ -51,9 +52,8 @@ class GoalRepository {
         ).filterValues { it != null}
     }
 
-    fun deleteGoal(id: String): String {
+    fun deleteGoal(id: String) {
         firestore.collection(GOALS_COLLECTION).document(id).delete()
-        return "Objetivo $id eletado com sucesso!"
     }
 
     private companion object {

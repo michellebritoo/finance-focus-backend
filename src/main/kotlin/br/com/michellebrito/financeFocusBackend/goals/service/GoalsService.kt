@@ -25,8 +25,8 @@ class GoalsService {
         repository.createGoal(goalModel)
     }
 
-    fun getGoal(id: String): UpdateGoalRequest? {
-        return repository.getGoal(id)
+    fun getGoal(id: String): String {
+        return repository.getGoal(id) ?: throw IllegalArgumentException("Objetivo não encontrado")
     }
 
     fun updateGoal(goalModel: UpdateGoalRequest) {
@@ -38,8 +38,8 @@ class GoalsService {
         repository.updateGoal(goalModel)
     }
 
-    fun deleteGoal(id: String): String {
-        return repository.deleteGoal(id)
+    fun deleteGoal(id: String) {
+        repository.deleteGoal(id)
     }
 
     private fun checkInvalidDateInterval(init: String, finish: String): Boolean {

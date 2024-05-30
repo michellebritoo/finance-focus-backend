@@ -35,8 +35,8 @@ class GoalsController {
     }
 
     @DeleteMapping(GOAL + DELETE)
-    fun deleteGoal(@NotBlank @RequestParam id: String): ResponseEntity<String> {
-        return ResponseEntity.ok(service.deleteGoal(id))
+    fun deleteGoal(@NotBlank @RequestParam id: String) {
+        service.deleteGoal(id)
     }
 
     private companion object Routes {
