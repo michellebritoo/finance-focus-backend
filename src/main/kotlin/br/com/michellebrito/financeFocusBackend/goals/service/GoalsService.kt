@@ -1,46 +1,83 @@
+@file:Suppress("ThrowableNotThrown")
+
 package br.com.michellebrito.financeFocusBackend.goals.service
 
-import br.com.michellebrito.financeFocusBackend.goals.model.Goal
-import com.google.api.core.ApiFuture
-import com.google.cloud.firestore.DocumentSnapshot
-import com.google.cloud.firestore.Firestore
-import com.google.firebase.cloud.FirestoreClient
+import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
+import br.com.michellebrito.financeFocusBackend.goals.model.UpdateGoalRequest
+import br.com.michellebrito.financeFocusBackend.goals.repository.GoalRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.ExecutionException
+import kotlin.math.abs
 
 @Service
 class GoalsService {
-    private val firestore: Firestore = FirestoreClient.getFirestore()
+    @Autowired
+    lateinit var repository: GoalRepository
 
     @Throws(ExecutionException::class, InterruptedException::class)
-    fun createGoal(goalModel: Goal) {
-        val collectionsFuture = firestore.collection(GOALS_COLLECTION)
-        collectionsFuture.document(goalModel.name).set(goalModel)
+    fun createGoal(goalModel: CreateGoalRequest) {
+        checkInvalidDateInterval(goalModel.initDate, goalModel.finishDate)
+        checkGoalValue(goalModel.value)
+
+        repository.createGoal(goalModel)
     }
 
-    fun getGoal(id: String): Goal? {
-        val documentReference = firestore.collection(GOALS_COLLECTION).document(id)
-        val collectionFuture: ApiFuture<DocumentSnapshot> = documentReference.get()
-        val document: DocumentSnapshot = collectionFuture.get()
+    fun getGoal(id: String): UpdateGoalRequest? {
+        return repository.getGoal(id)
+    }
 
-        if (document.exists()) {
-            return document.toObject(Goal::class.java)?.apply {
-                this.documentId = document.id
-            }
+    fun updateGoal(goalModel: UpdateGoalRequest) {
+        if (goalModel.initDate != null && goalModel.finishDate != null) {
+            checkInvalidDateInterval(goalModel.initDate!!, goalModel.finishDate!!)
         }
-        return null
-    }
+        goalModel.value?.let { checkGoalValue(it) }
 
-    fun updateGoal(goalModel: Goal) {
-        firestore.collection(GOALS_COLLECTION).document(goalModel.name).set(goalModel)
+        repository.updateGoal(goalModel)
     }
 
     fun deleteGoal(id: String): String {
-        firestore.collection(GOALS_COLLECTION).document(id).delete()
-        return "Objetivo $id eletado com sucesso!"
+        return repository.deleteGoal(id)
+    }
+
+    private fun checkInvalidDateInterval(init: String, finish: String): Boolean {
+        val format = SimpleDateFormat("dd/MM/yyyy")
+        val dateInit = format.parse(init)
+        val dateFinish = format.parse(finish)
+        val currentDate = Date()
+
+        val diffDays = abs(dateFinish.time - dateInit.time) / (24 * 60 * 60 * 1000)
+
+        return when {
+            diffDays.toInt() < MIN_DAYS -> {
+                throw IllegalArgumentException("O objetivo deve durar ao menos um dia")
+            }
+
+            dateFinish.before(dateInit) -> {
+                throw IllegalArgumentException("O objetivo deve ter uma data de conclusão posterior a data de início")
+            }
+
+            dateInit.before(currentDate) -> {
+                throw IllegalArgumentException("O objetivo não deve ter uma data de início anterior ao dia de hoje")
+            }
+
+            dateFinish.before(currentDate) -> {
+                throw IllegalArgumentException("O objetivo deve ter uma data de conclusão posterior ao dia de hoje")
+            }
+
+            else -> true
+        }
+    }
+
+    private fun checkGoalValue(value: Float) {
+        if (value <= 1f) {
+            throw IllegalArgumentException("O valor do objetivo deve ser maior que R$ 1,00")
+        }
     }
 
     private companion object {
-        const val GOALS_COLLECTION = "goals"
+        const val MIN_DAYS = 2
     }
 }
