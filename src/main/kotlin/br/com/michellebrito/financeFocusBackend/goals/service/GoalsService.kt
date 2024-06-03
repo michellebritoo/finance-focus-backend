@@ -2,12 +2,18 @@
 
 package br.com.michellebrito.financeFocusBackend.goals.service
 
+import br.com.michellebrito.financeFocusBackend.deposit.service.DepositService
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
+import br.com.michellebrito.financeFocusBackend.goals.model.DepositModel
+import br.com.michellebrito.financeFocusBackend.goals.model.ExpectedDeposit
 import br.com.michellebrito.financeFocusBackend.goals.model.UpdateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.repository.GoalRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.ExecutionException
 import kotlin.math.abs
@@ -17,12 +23,21 @@ class GoalsService {
     @Autowired
     lateinit var repository: GoalRepository
 
-    @Throws(ExecutionException::class, InterruptedException::class)
-    fun createGoal(goalModel: CreateGoalRequest) {
-        checkInvalidDateInterval(goalModel.initDate, goalModel.finishDate)
-        checkGoalValue(goalModel.value)
+    @Autowired
+    lateinit var depositService: DepositService
 
-        repository.createGoal(goalModel)
+    @Throws(ExecutionException::class, InterruptedException::class)
+    fun createGoal(model: CreateGoalRequest) {
+        checkInvalidDateInterval(model.initDate, model.finishDate)
+        checkGoalValue(model.value)
+        model.depositId = depositService.generateGoalDeposits(
+            model.monthFrequency,
+            model.gradualProgress,
+            model.value,
+            model.initDate,
+            model.finishDate
+        )
+        repository.createGoal(model)
     }
 
     fun getGoal(id: String): String {

@@ -28,7 +28,7 @@ class GoalsController {
     }
 
     @GetMapping
-    fun getGoals(@NotBlank @RequestParam id: String): ResponseEntity<String> {
+    fun getGoal(@NotBlank @RequestParam id: String): ResponseEntity<String> {
         return ResponseEntity.ok(service.getGoal(id))
     }
 

@@ -1,6 +1,8 @@
 package br.com.michellebrito.financeFocusBackend.goals.repository
 
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
+import br.com.michellebrito.financeFocusBackend.goals.model.DepositModel
+import br.com.michellebrito.financeFocusBackend.goals.model.ExpectedDeposit
 import br.com.michellebrito.financeFocusBackend.goals.model.UpdateGoalRequest
 import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.DocumentSnapshot
@@ -18,11 +20,7 @@ class GoalRepository {
     @Throws(ExecutionException::class, InterruptedException::class)
     fun createGoal(goalModel: CreateGoalRequest) {
         val collectionsFuture = firestore.collection(GOALS_COLLECTION)
-        collectionsFuture.document(generateGoalID()).set(goalModel)
-    }
-
-    private fun generateGoalID(): String {
-        return GOAL_PREXIF + UUID.randomUUID().toString()
+        collectionsFuture.document(goalModel.id).set(goalModel)
     }
 
     fun getGoal(id: String): String? {
@@ -58,6 +56,5 @@ class GoalRepository {
 
     private companion object {
         const val GOALS_COLLECTION = "goals"
-        const val GOAL_PREXIF = "GOAL:"
     }
 }

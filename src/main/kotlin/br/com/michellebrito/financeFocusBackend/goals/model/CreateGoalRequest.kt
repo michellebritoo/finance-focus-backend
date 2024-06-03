@@ -2,8 +2,12 @@ package br.com.michellebrito.financeFocusBackend.goals.model
 
 import jakarta.validation.constraints.NotBlank
 import org.jetbrains.annotations.NotNull
+import java.util.*
+
+const val GOAL_PREXIF = "GOAL:"
 
 data class CreateGoalRequest (
+    var id: String = GOAL_PREXIF + UUID.randomUUID().toString(),
     @field:NotBlank(message = "Por favor, informe um nome")
     var name: String,
     var description: String,
@@ -14,5 +18,6 @@ data class CreateGoalRequest (
     @field:NotBlank(message = "Por favor, informe uma data de início")
     var initDate: String,
     @field:NotBlank(message = "Por favor, informe uma data de conclusão")
-    var finishDate: String
+    var finishDate: String,
+    var depositId : String = ""
 )
