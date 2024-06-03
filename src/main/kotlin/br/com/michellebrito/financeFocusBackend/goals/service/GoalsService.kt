@@ -4,16 +4,11 @@ package br.com.michellebrito.financeFocusBackend.goals.service
 
 import br.com.michellebrito.financeFocusBackend.deposit.service.DepositService
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
-import br.com.michellebrito.financeFocusBackend.goals.model.DepositModel
-import br.com.michellebrito.financeFocusBackend.goals.model.ExpectedDeposit
 import br.com.michellebrito.financeFocusBackend.goals.model.UpdateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.repository.GoalRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.ExecutionException
 import kotlin.math.abs

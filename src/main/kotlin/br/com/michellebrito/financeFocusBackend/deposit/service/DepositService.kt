@@ -85,7 +85,7 @@ class DepositService {
             var remainingAmount = amount
 
             val deposit = DepositModel(
-                amount = depositValue,
+                amount = amount,
                 remainingValue = amount,
                 numberOfDeposit = diffMonths.toInt(),
                 lastDeposit = 0,
@@ -110,18 +110,32 @@ class DepositService {
             val diffWeeks = ChronoUnit.WEEKS.between(dateInit, dateFinish)
             val depositValue = amount / diffWeeks
             val deposits = mutableListOf<Float>()
+            val expectedDepositList = mutableListOf<ExpectedDeposit>()
             var currentDepositValue = depositValue
-            for (i in 1..diffWeeks) {
-                deposits.add(currentDepositValue)
-                currentDepositValue += depositValue / diffWeeks
-            }
-            return DepositModel(
-                amount = deposits.first(),
+            var currentExpectedDeposit: ExpectedDeposit?
+
+            val depositIncrement = depositValue / diffWeeks
+            var remainingAmount = amount
+
+            val deposit = DepositModel(
+                amount = amount,
                 remainingValue = amount,
                 numberOfDeposit = diffWeeks.toInt(),
                 lastDeposit = 0,
                 lastDepositDate = ""
             )
+            for (i in 1..diffWeeks) {
+                if (i == diffWeeks) {
+                    currentDepositValue = remainingAmount
+                }
+                deposits.add(currentDepositValue)
+                currentExpectedDeposit = ExpectedDeposit(depositId = deposit.id, value = currentDepositValue)
+                expectedDepositList.add(currentExpectedDeposit)
+                remainingAmount -= currentDepositValue
+                currentDepositValue += depositIncrement
+            }
+            deposit.expectedDepositList = expectedDepositList
+            return deposit
         }
     }
 }

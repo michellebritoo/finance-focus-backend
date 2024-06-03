@@ -1,8 +1,6 @@
 package br.com.michellebrito.financeFocusBackend.goals.repository
 
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
-import br.com.michellebrito.financeFocusBackend.goals.model.DepositModel
-import br.com.michellebrito.financeFocusBackend.goals.model.ExpectedDeposit
 import br.com.michellebrito.financeFocusBackend.goals.model.UpdateGoalRequest
 import com.google.api.core.ApiFuture
 import com.google.cloud.firestore.DocumentSnapshot
@@ -10,7 +8,6 @@ import com.google.cloud.firestore.Firestore
 import com.google.firebase.cloud.FirestoreClient
 import com.google.gson.Gson
 import org.springframework.stereotype.Repository
-import java.util.UUID
 import java.util.concurrent.ExecutionException
 
 @Repository
