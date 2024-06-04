@@ -3,7 +3,9 @@ package br.com.michellebrito.financeFocusBackend.deposit.service
 import br.com.michellebrito.financeFocusBackend.deposit.repository.DepositRepository
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
+import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
 import br.com.michellebrito.financeFocusBackend.utils.extension.parseDates
+import com.google.gson.Gson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.temporal.ChronoUnit
@@ -12,6 +14,17 @@ import java.time.temporal.ChronoUnit
 class DepositService {
     @Autowired
     lateinit var repository: DepositRepository
+
+    fun getDeposits(id: String): String? {
+        return repository.getDeposit(id)
+    }
+
+    fun deleteDeposits(goal: CreateGoalRequest) {
+        val deposit = Gson().fromJson(getDeposits(goal.depositId), DepositModel::class.java)
+
+        repository.deleteExpectedDepositByDepositId(deposit.id)
+        repository.deleteDeposit(deposit.id)
+    }
 
     fun generateGoalDeposits(
         monthFrequency: Boolean,

@@ -2,8 +2,11 @@ package br.com.michellebrito.financeFocusBackend.deposit.repository
 
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
+import com.google.api.core.ApiFuture
+import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.Firestore
 import com.google.firebase.cloud.FirestoreClient
+import com.google.gson.Gson
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -17,6 +20,28 @@ class DepositRepository {
     fun createExpectedDeposit(model: ExpectedDeposit) {
         val collectionsFuture = firestore.collection(EXPECTED_DEPOSITS)
         collectionsFuture.document(model.id).set(model)
+    }
+
+    fun getDeposit(id: String): String? {
+        val documentReference = firestore.collection(DEPOSIT_COLLECTION).document(id)
+        val collectionFuture: ApiFuture<DocumentSnapshot> = documentReference.get()
+        val document: DocumentSnapshot = collectionFuture.get()
+
+        if (document.exists()) {
+            return Gson().toJson(document.data)
+        }
+        return null
+    }
+
+    fun deleteDeposit(id: String) {
+        firestore.collection(DEPOSIT_COLLECTION).document(id).delete()
+    }
+
+    fun deleteExpectedDepositByDepositId(id: String) {
+        val list = firestore.collection(EXPECTED_DEPOSITS).whereEqualTo("depositId", id).get().get()
+        list.documents.forEach {
+            firestore.collection(EXPECTED_DEPOSITS).document(it.id).delete()
+        }
     }
 
     private companion object {

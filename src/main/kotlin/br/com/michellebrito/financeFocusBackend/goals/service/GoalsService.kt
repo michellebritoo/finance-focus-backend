@@ -2,10 +2,12 @@
 
 package br.com.michellebrito.financeFocusBackend.goals.service
 
+import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.service.DepositService
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.model.UpdateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.repository.GoalRepository
+import com.google.gson.Gson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.text.SimpleDateFormat
@@ -39,16 +41,48 @@ class GoalsService {
         return repository.getGoal(id) ?: throw IllegalArgumentException("Objetivo não encontrado")
     }
 
-    fun updateGoal(goalModel: UpdateGoalRequest) {
-        if (goalModel.initDate != null && goalModel.finishDate != null) {
-            checkInvalidDateInterval(goalModel.initDate!!, goalModel.finishDate!!)
-        }
-        goalModel.value?.let { checkGoalValue(it) }
+    fun updateGoal(model: UpdateGoalRequest) {
+        val existingGoal = Gson().fromJson(getGoal(model.id), CreateGoalRequest::class.java)
+        val existingDeposits = Gson().fromJson(depositService.getDeposits(existingGoal.depositId), DepositModel::class.java)
 
-        repository.updateGoal(goalModel)
+        if (existingDeposits.lastDeposit < 0) {
+            deleteGoal(existingGoal.id)
+            createGoal(
+                CreateGoalRequest(
+                    id = model.id,
+                    userUID = model.userUID,
+                    name = model.name ?: existingGoal.name,
+                    description = model.description ?: existingGoal.description,
+                    value = model.value ?: existingGoal.value,
+                    gradualProgress = model.gradualProgress ?: existingGoal.gradualProgress,
+                    monthFrequency = model.monthFrequency ?: existingGoal.monthFrequency,
+                    initDate = model.initDate ?: existingGoal.initDate,
+                    finishDate = model.finishDate ?: existingGoal.finishDate
+                )
+            )
+        } else {
+            val tempGoal = CreateGoalRequest(
+                id = model.id,
+                userUID = model.userUID,
+                name = model.name ?: existingGoal.name,
+                description = model.description ?: existingGoal.description,
+                value = model.value ?: existingGoal.value,
+                gradualProgress = model.gradualProgress ?: existingGoal.gradualProgress,
+                monthFrequency = model.monthFrequency ?: existingGoal.monthFrequency,
+                initDate = model.initDate ?: existingGoal.initDate,
+                finishDate = model.finishDate ?: existingGoal.finishDate
+            )
+
+            checkInvalidDateInterval(tempGoal.initDate, tempGoal.finishDate)
+            checkGoalValue(tempGoal.value)
+
+            repository.updateGoal(model)
+        }
     }
 
     fun deleteGoal(id: String) {
+        val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java)
+        depositService.deleteDeposits(goal)
         repository.deleteGoal(id)
     }
 

@@ -4,10 +4,12 @@ import jakarta.validation.constraints.NotBlank
 import org.jetbrains.annotations.NotNull
 import java.util.*
 
-const val GOAL_PREXIF = "GOAL:"
+private const val GOAL_PREXIF = "GOAL:"
 
 data class CreateGoalRequest (
     var id: String = GOAL_PREXIF + UUID.randomUUID().toString(),
+    @field:NotBlank(message = "Realize login para completar a solicitacao")
+    var userUID: String,
     @field:NotBlank(message = "Por favor, informe um nome")
     var name: String,
     var description: String,
