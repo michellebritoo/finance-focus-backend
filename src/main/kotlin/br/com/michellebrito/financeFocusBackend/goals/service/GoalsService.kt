@@ -26,14 +26,15 @@ class GoalsService {
     @Throws(ExecutionException::class, InterruptedException::class)
     fun createGoal(model: CreateGoalRequest) {
         checkInvalidDateInterval(model.initDate, model.finishDate)
-        checkGoalValue(model.value)
+        checkGoalValue(model.totalValue)
         model.depositId = depositService.generateGoalDeposits(
             model.monthFrequency,
             model.gradualProgress,
-            model.value,
+            model.totalValue,
             model.initDate,
             model.finishDate
         )
+        model.remainingValue = model.totalValue
         repository.createGoal(model)
     }
 
@@ -45,37 +46,35 @@ class GoalsService {
         val existingGoal = Gson().fromJson(getGoal(model.id), CreateGoalRequest::class.java)
         val existingDeposits = Gson().fromJson(depositService.getDeposits(existingGoal.depositId), DepositModel::class.java)
 
-        if (existingDeposits.lastDeposit < 0) {
-            deleteGoal(existingGoal.id)
-            createGoal(
-                CreateGoalRequest(
-                    id = model.id,
-                    userUID = model.userUID,
-                    name = model.name ?: existingGoal.name,
-                    description = model.description ?: existingGoal.description,
-                    value = model.value ?: existingGoal.value,
-                    gradualProgress = model.gradualProgress ?: existingGoal.gradualProgress,
-                    monthFrequency = model.monthFrequency ?: existingGoal.monthFrequency,
-                    initDate = model.initDate ?: existingGoal.initDate,
-                    finishDate = model.finishDate ?: existingGoal.finishDate
+        val shouldReWrite = listOf(
+            model.totalValue to existingGoal.totalValue,
+            model.initDate to existingGoal.initDate,
+            model.finishDate to existingGoal.finishDate,
+            model.gradualProgress to existingGoal.gradualProgress,
+            model.monthFrequency to existingGoal.monthFrequency
+        ).any { (newValue, oldValue) -> newValue?.let { it != oldValue } == true }
+
+        if (shouldReWrite) {
+            if (existingDeposits.lastDeposit < 0) {
+                deleteGoal(existingGoal.id)
+                createGoal(
+                    CreateGoalRequest(
+                        id = existingGoal.id,
+                        userUID = existingGoal.userUID,
+                        name = model.name ?: existingGoal.name,
+                        description = model.description ?: existingGoal.description,
+                        totalValue = model.totalValue ?: existingGoal.totalValue,
+                        remainingValue = model.totalValue ?: existingGoal.totalValue,
+                        gradualProgress = model.gradualProgress ?: existingGoal.gradualProgress,
+                        monthFrequency = model.monthFrequency ?: existingGoal.monthFrequency,
+                        initDate = model.initDate ?: existingGoal.initDate,
+                        finishDate = model.finishDate ?: existingGoal.finishDate
+                    )
                 )
-            )
+            } else {
+
+            }
         } else {
-            val tempGoal = CreateGoalRequest(
-                id = model.id,
-                userUID = model.userUID,
-                name = model.name ?: existingGoal.name,
-                description = model.description ?: existingGoal.description,
-                value = model.value ?: existingGoal.value,
-                gradualProgress = model.gradualProgress ?: existingGoal.gradualProgress,
-                monthFrequency = model.monthFrequency ?: existingGoal.monthFrequency,
-                initDate = model.initDate ?: existingGoal.initDate,
-                finishDate = model.finishDate ?: existingGoal.finishDate
-            )
-
-            checkInvalidDateInterval(tempGoal.initDate, tempGoal.finishDate)
-            checkGoalValue(tempGoal.value)
-
             repository.updateGoal(model)
         }
     }

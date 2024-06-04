@@ -71,7 +71,7 @@ class DepositService {
             if (currentDepositValue > remainingAmount) {
                 currentDepositValue = remainingAmount
             }
-            val currentExpectedDeposit = ExpectedDeposit(depositId = deposit.id, value = currentDepositValue)
+            val currentExpectedDeposit = ExpectedDeposit(depositId = deposit.id, value = currentDepositValue, completed = false)
             repository.createExpectedDeposit(currentExpectedDeposit)
             deposit.expectedDepositList.add(currentExpectedDeposit)
             remainingAmount -= currentDepositValue
@@ -93,7 +93,7 @@ class DepositService {
             amount = amount,
             remainingValue = remainingValue,
             numberOfDeposit = numberOfDeposit,
-            lastDeposit = 0,
+            lastDeposit = -1,
             lastDepositDate = ""
         )
     }

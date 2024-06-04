@@ -37,14 +37,16 @@ class GoalRepository {
 
     fun UpdateGoalRequest.toMap(): Map<String, Any?> {
         return mapOf(
+            "id" to id,
             "name" to name,
             "description" to description,
-            "value" to value,
+            "totalValue" to totalValue,
+            "remainingValue" to remainingValue,
             "gradualProgress" to gradualProgress,
             "monthFrequency" to monthFrequency,
             "initDate" to initDate,
             "finishDate" to finishDate
-        ).filterValues { it != null}
+        ).filterValues { it != null }
     }
 
     fun deleteGoal(id: String) {
