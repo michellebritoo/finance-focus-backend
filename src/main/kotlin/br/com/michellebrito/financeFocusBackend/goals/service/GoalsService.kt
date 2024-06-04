@@ -72,7 +72,7 @@ class GoalsService {
                     )
                 )
             } else {
-
+                //task 41
             }
         } else {
             repository.updateGoal(model)
@@ -95,7 +95,7 @@ class GoalsService {
 
         return when {
             diffDays.toInt() < MIN_DAYS -> {
-                throw IllegalArgumentException("O objetivo deve durar ao menos um dia")
+                throw IllegalArgumentException("O objetivo deve durar ao menos uma semana")
             }
 
             dateFinish.before(dateInit) -> {
@@ -121,6 +121,6 @@ class GoalsService {
     }
 
     private companion object {
-        const val MIN_DAYS = 2
+        const val MIN_DAYS = 7
     }
 }
