@@ -1,4 +1,4 @@
-package br.com.michellebrito.financeFocusBackend.goals.model
+package br.com.michellebrito.financeFocusBackend.deposit.model
 
 import org.jetbrains.annotations.NotNull
 import java.util.*
