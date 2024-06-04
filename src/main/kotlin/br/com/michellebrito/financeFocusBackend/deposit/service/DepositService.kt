@@ -3,10 +3,9 @@ package br.com.michellebrito.financeFocusBackend.deposit.service
 import br.com.michellebrito.financeFocusBackend.deposit.repository.DepositRepository
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
+import br.com.michellebrito.financeFocusBackend.utils.extension.parseDates
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 @Service
@@ -36,12 +35,7 @@ class DepositService {
         init: String,
         finish: String
     ): DepositModel {
-        val (dateInit, dateFinish) = parseDates(init, finish)
-        val diff = if (monthFrequency) {
-            ChronoUnit.MONTHS.between(dateInit, dateFinish)
-        } else {
-            ChronoUnit.WEEKS.between(dateInit, dateFinish)
-        }
+        val diff = getDiffDates(init, finish, monthFrequency)
         val baseDepositValue = amount / diff
 
         return createDepositModel(amount, baseDepositValue, diff.toInt())
@@ -53,12 +47,7 @@ class DepositService {
         init: String,
         finish: String
     ): DepositModel {
-        val (dateInit, dateFinish) = parseDates(init, finish)
-        val diff = if (monthFrequency) {
-            ChronoUnit.MONTHS.between(dateInit, dateFinish)
-        } else {
-            ChronoUnit.WEEKS.between(dateInit, dateFinish)
-        }
+        val diff = getDiffDates(init, finish, monthFrequency)
         val depositValue = amount / diff
         val depositIncrement = depositValue / diff
         var remainingAmount = amount
@@ -77,11 +66,13 @@ class DepositService {
         return deposit
     }
 
-    private fun parseDates(init: String, finish: String): Pair<LocalDate, LocalDate> {
-        val format = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        val dateInit = LocalDate.parse(init, format)
-        val dateFinish = LocalDate.parse(finish, format)
-        return Pair(dateInit, dateFinish)
+    private fun getDiffDates(init: String, finish: String, monthFrequency: Boolean): Long {
+        val dates = Pair(init, finish).parseDates()
+        return if (monthFrequency) {
+            ChronoUnit.MONTHS.between(dates.first, dates.second)
+        } else {
+            ChronoUnit.WEEKS.between(dates.first, dates.second)
+        }
     }
 
     private fun createDepositModel(amount: Float, remainingValue: Float, numberOfDeposit: Int): DepositModel {
