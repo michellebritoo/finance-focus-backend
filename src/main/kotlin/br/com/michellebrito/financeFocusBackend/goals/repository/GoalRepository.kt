@@ -35,6 +35,12 @@ class GoalRepository {
         firestore.collection(GOALS_COLLECTION).document(goalModel.id).update(goalModel.toMap())
     }
 
+    fun incrementGoal(id: String, remainingValue: Float) {
+        firestore.collection(GOALS_COLLECTION).document(id).update(
+            mapOf("remainingValue" to remainingValue)
+        )
+    }
+
     fun UpdateGoalRequest.toMap(): Map<String, Any?> {
         return mapOf(
             "id" to id,
