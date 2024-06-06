@@ -23,4 +23,5 @@ data class CreateGoalRequest(
     var initDate: String,
     @field:NotBlank(message = "Por favor, informe uma data de conclusão")
     var finishDate: String,
+    var concluded: Boolean = false
 )

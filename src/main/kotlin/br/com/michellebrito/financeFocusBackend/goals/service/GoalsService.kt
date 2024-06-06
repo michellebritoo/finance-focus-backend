@@ -45,7 +45,8 @@ class GoalsService {
 
     fun updateGoal(model: UpdateGoalRequest) {
         val existingGoal = Gson().fromJson(getGoal(model.id), CreateGoalRequest::class.java)
-        val existingDeposits = Gson().fromJson(depositService.getDeposits(existingGoal.depositId), DepositModel::class.java)
+        val existingDeposits =
+            Gson().fromJson(depositService.getDeposits(existingGoal.depositId), DepositModel::class.java)
 
         val shouldReWrite = listOf(
             model.totalValue to existingGoal.totalValue,
@@ -82,10 +83,15 @@ class GoalsService {
 
     fun incrementGoal(model: IncrementGoalRequest) {
         val goal = Gson().fromJson(getGoal(model.id), CreateGoalRequest::class.java)
-        checkGoalValueToIncrement(model.valueToIncrement)
+        checkConcludedGoal(goal.concluded)
+        checkGoalValueToIncrement(goal.remainingValue, model.valueToIncrement)
 
         goal.remainingValue -= model.valueToIncrement
-        repository.incrementGoal(model.id, goal.remainingValue)
+        if (goal.remainingValue == 0f) {
+            goal.concluded = true
+        }
+
+        repository.incrementGoal(model.id, goal.remainingValue, goal.concluded)
     }
 
     fun deleteGoal(id: String) {
@@ -129,11 +135,21 @@ class GoalsService {
         }
     }
 
-    private fun checkGoalValueToIncrement(value: Float) {
+    private fun checkGoalValueToIncrement(remaningValue: Float, value: Float) {
         if (value <= 0f) {
             throw IllegalArgumentException("Não é possível incrementar o valor zero")
         }
+        if (remaningValue < value) {
+            throw IllegalArgumentException("Não é possível incrementar um valor maior que o valor restante para concluir o objetivo")
+        }
     }
+
+    private fun checkConcludedGoal(isConcluded: Boolean) {
+        if (isConcluded) {
+            throw IllegalArgumentException("Esse objetivo já foi concluído")
+        }
+    }
+
     private companion object {
         const val MIN_DAYS = 7
     }
