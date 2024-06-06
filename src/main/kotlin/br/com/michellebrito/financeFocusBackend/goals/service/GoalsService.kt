@@ -43,6 +43,10 @@ class GoalsService {
         return repository.getGoal(id) ?: throw IllegalArgumentException("Objetivo não encontrado")
     }
 
+    fun getGoalsByUser(userId: String): String? {
+        return repository.getGoalsByUser(userId)
+    }
+
     fun updateGoal(model: UpdateGoalRequest) {
         val existingGoal = Gson().fromJson(getGoal(model.id), CreateGoalRequest::class.java)
         val existingDeposits =
@@ -104,7 +108,7 @@ class GoalsService {
         val format = SimpleDateFormat("dd/MM/yyyy")
         val dateInit = format.parse(init)
         val dateFinish = format.parse(finish)
-        val currentDate = Date()
+        val currentDate = format.parse(format.format(Date()))
 
         val diffDays = abs(dateFinish.time - dateInit.time) / (24 * 60 * 60 * 1000)
 

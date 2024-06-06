@@ -33,6 +33,11 @@ class GoalsController {
         return ResponseEntity.ok(service.getGoal(id))
     }
 
+    @GetMapping(LIST)
+    fun getGoalsByUser(@NotBlank @RequestParam userUID: String): ResponseEntity<String> {
+        return ResponseEntity.ok(service.getGoalsByUser(userUID))
+    }
+
     @PostMapping(UPDATE)
     fun updateGoal(@Valid @RequestBody updateGoalRequestModel: UpdateGoalRequest) {
         service.updateGoal(updateGoalRequestModel)
@@ -50,6 +55,7 @@ class GoalsController {
 
     companion object Routes {
         const val GOAL = "/goal"
+        const val LIST = "/list"
         const val UPDATE = "/update"
         const val INCREMENT = "/increment"
         const val CREATE = "/create"

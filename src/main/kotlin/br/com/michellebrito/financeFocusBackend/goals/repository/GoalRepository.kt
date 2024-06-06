@@ -31,6 +31,17 @@ class GoalRepository {
         return null
     }
 
+    fun getGoalsByUser(userId: String): String? {
+        val list = firestore.collection(GOALS_COLLECTION).whereEqualTo("userUID", userId).get().get()
+        return if (list.documents.isNotEmpty()) {
+            val goals = list.documents.map { it.data }.toList()
+            return Gson().toJson(goals)
+        } else {
+            "Usuário não possui objetivos cadastrados"
+        }
+    }
+
+
     fun updateGoal(goalModel: UpdateGoalRequest) {
         firestore.collection(GOALS_COLLECTION).document(goalModel.id).update(goalModel.toMap())
     }
