@@ -5,6 +5,7 @@ package br.com.michellebrito.financeFocusBackend.goals.service
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.service.DepositService
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
+import br.com.michellebrito.financeFocusBackend.goals.model.IncrementGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.model.UpdateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.repository.GoalRepository
 import com.google.gson.Gson
@@ -26,7 +27,7 @@ class GoalsService {
     @Throws(ExecutionException::class, InterruptedException::class)
     fun createGoal(model: CreateGoalRequest) {
         checkInvalidDateInterval(model.initDate, model.finishDate)
-        checkGoalValue(model.totalValue)
+        checkGoalValueToCreate(model.totalValue)
         model.depositId = depositService.generateGoalDeposits(
             model.monthFrequency,
             model.gradualProgress,
@@ -44,7 +45,8 @@ class GoalsService {
 
     fun updateGoal(model: UpdateGoalRequest) {
         val existingGoal = Gson().fromJson(getGoal(model.id), CreateGoalRequest::class.java)
-        val existingDeposits = Gson().fromJson(depositService.getDeposits(existingGoal.depositId), DepositModel::class.java)
+        val existingDeposits =
+            Gson().fromJson(depositService.getDeposits(existingGoal.depositId), DepositModel::class.java)
 
         val shouldReWrite = listOf(
             model.totalValue to existingGoal.totalValue,
@@ -77,6 +79,19 @@ class GoalsService {
         } else {
             repository.updateGoal(model)
         }
+    }
+
+    fun incrementGoal(model: IncrementGoalRequest) {
+        val goal = Gson().fromJson(getGoal(model.id), CreateGoalRequest::class.java)
+        checkConcludedGoal(goal.concluded)
+        checkGoalValueToIncrement(goal.remainingValue, model.valueToIncrement)
+
+        goal.remainingValue -= model.valueToIncrement
+        if (goal.remainingValue == 0f) {
+            goal.concluded = true
+        }
+
+        repository.incrementGoal(model.id, goal.remainingValue, goal.concluded)
     }
 
     fun deleteGoal(id: String) {
@@ -114,9 +129,24 @@ class GoalsService {
         }
     }
 
-    private fun checkGoalValue(value: Float) {
+    private fun checkGoalValueToCreate(value: Float) {
         if (value <= 1f) {
             throw IllegalArgumentException("O valor do objetivo deve ser maior que R$ 1,00")
+        }
+    }
+
+    private fun checkGoalValueToIncrement(remaningValue: Float, value: Float) {
+        if (value <= 0f) {
+            throw IllegalArgumentException("Não é possível incrementar o valor zero")
+        }
+        if (remaningValue < value) {
+            throw IllegalArgumentException("Não é possível incrementar um valor maior que o valor restante para concluir o objetivo")
+        }
+    }
+
+    private fun checkConcludedGoal(isConcluded: Boolean) {
+        if (isConcluded) {
+            throw IllegalArgumentException("Esse objetivo já foi concluído")
         }
     }
 
