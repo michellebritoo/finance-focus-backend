@@ -34,8 +34,8 @@ class GoalsController {
     }
 
     @GetMapping(LIST)
-    fun getGoalsByUser(@NotBlank @RequestParam userUID: String): ResponseEntity<String> {
-        return ResponseEntity.ok(service.getGoalsByUser(userUID))
+    fun getGoalsByUser(): ResponseEntity<String> {
+        return ResponseEntity.ok(service.getGoalsByUser())
     }
 
     @PostMapping(UPDATE)

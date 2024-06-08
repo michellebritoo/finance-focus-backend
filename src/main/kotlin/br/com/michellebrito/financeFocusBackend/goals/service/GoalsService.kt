@@ -49,8 +49,11 @@ class GoalsService {
         return Gson().toJson(goal)
     }
 
-    fun getGoalsByUser(userId: String): String? {
-        return repository.getGoalsByUser(userId)
+    fun getGoalsByUser(): String? {
+        val userID = authService.getUserUIDByToken()
+        val goalList = repository.getGoalsByUser(userID)
+        val filteredList = goalList?.filter { it.userUID == userID }
+        return Gson().toJson(filteredList)
     }
 
     fun updateGoal(model: UpdateGoalRequest) {
