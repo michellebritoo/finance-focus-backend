@@ -1,7 +1,6 @@
-@file:Suppress("ThrowableNotThrown")
-
 package br.com.michellebrito.financeFocusBackend.goals.service
 
+import br.com.michellebrito.financeFocusBackend.auth.service.AuthService
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.service.DepositService
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
@@ -13,40 +12,58 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.ExecutionException
 import kotlin.math.abs
 
 @Service
 class GoalsService {
     @Autowired
-    lateinit var repository: GoalRepository
+    private lateinit var repository: GoalRepository
 
     @Autowired
-    lateinit var depositService: DepositService
+    private lateinit var depositService: DepositService
 
-    @Throws(ExecutionException::class, InterruptedException::class)
+    @Autowired
+    private lateinit var authService: AuthService
+
     fun createGoal(model: CreateGoalRequest) {
         checkInvalidDateInterval(model.initDate, model.finishDate)
         checkGoalValueToCreate(model.totalValue)
-        model.depositId = depositService.generateGoalDeposits(
-            model.monthFrequency,
-            model.gradualProgress,
-            model.totalValue,
-            model.initDate,
-            model.finishDate
-        )
-        model.remainingValue = model.totalValue
+        model.apply {
+            depositId = depositService.generateGoalDeposits(
+                model.monthFrequency,
+                model.gradualProgress,
+                model.totalValue,
+                model.initDate,
+                model.finishDate
+            )
+            userUID = getUserUIDByToken()
+            remainingValue = model.totalValue
+        }
         repository.createGoal(model)
     }
 
     fun getGoal(id: String): String {
-        return repository.getGoal(id) ?: throw IllegalArgumentException("Objetivo não encontrado")
+        val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java) ?: throw IllegalArgumentException("Objetivo não encontrado")
+        if (goal.userUID != getUserUIDByToken()) {
+            throw IllegalArgumentException("Objetivo não pertence ao usuário")
+        }
+        return Gson().toJson(goal)
+    }
+
+    fun getGoalsByUser(): String? {
+        val userID = getUserUIDByToken()
+        val goalList = repository.getGoalsByUser(userID)
+        val filteredList = goalList?.filter { it.userUID == userID }
+        return Gson().toJson(filteredList)
     }
 
     fun updateGoal(model: UpdateGoalRequest) {
         val existingGoal = Gson().fromJson(getGoal(model.id), CreateGoalRequest::class.java)
-        val existingDeposits =
-            Gson().fromJson(depositService.getDeposits(existingGoal.depositId), DepositModel::class.java)
+        val existingDeposits = Gson().fromJson(depositService.getDeposits(existingGoal.depositId), DepositModel::class.java)
+
+        if (existingGoal.userUID != getUserUIDByToken()) {
+            throw IllegalArgumentException("Objetivo não pertence ao usuário")
+        }
 
         val shouldReWrite = listOf(
             model.totalValue to existingGoal.totalValue,
@@ -86,7 +103,13 @@ class GoalsService {
         checkConcludedGoal(goal.concluded)
         checkGoalValueToIncrement(goal.remainingValue, model.valueToIncrement)
 
-        goal.remainingValue -= model.valueToIncrement
+        if (goal.userUID != getUserUIDByToken()) {
+            throw IllegalArgumentException("Objetivo não pertence ao usuário")
+        }
+        goal.apply {
+            userUID = getUserUIDByToken()
+            remainingValue -= model.valueToIncrement
+        }
         if (goal.remainingValue == 0f) {
             goal.concluded = true
         }
@@ -96,15 +119,20 @@ class GoalsService {
 
     fun deleteGoal(id: String) {
         val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java)
-        depositService.deleteDeposits(goal)
-        repository.deleteGoal(id)
+        goal?.let {
+            if (goal.userUID != getUserUIDByToken()) {
+                throw IllegalArgumentException("Objetivo não pertence ao usuário")
+            }
+            depositService.deleteDeposits(goal)
+            repository.deleteGoal(id)
+        }
     }
 
     private fun checkInvalidDateInterval(init: String, finish: String): Boolean {
         val format = SimpleDateFormat("dd/MM/yyyy")
         val dateInit = format.parse(init)
         val dateFinish = format.parse(finish)
-        val currentDate = Date()
+        val currentDate = format.parse(format.format(Date()))
 
         val diffDays = abs(dateFinish.time - dateInit.time) / (24 * 60 * 60 * 1000)
 
@@ -135,11 +163,11 @@ class GoalsService {
         }
     }
 
-    private fun checkGoalValueToIncrement(remaningValue: Float, value: Float) {
+    private fun checkGoalValueToIncrement(remainingValue: Float, value: Float) {
         if (value <= 0f) {
             throw IllegalArgumentException("Não é possível incrementar o valor zero")
         }
-        if (remaningValue < value) {
+        if (remainingValue < value) {
             throw IllegalArgumentException("Não é possível incrementar um valor maior que o valor restante para concluir o objetivo")
         }
     }
@@ -149,6 +177,8 @@ class GoalsService {
             throw IllegalArgumentException("Esse objetivo já foi concluído")
         }
     }
+
+    private fun getUserUIDByToken() = authService.getUserUIDByToken()
 
     private companion object {
         const val MIN_DAYS = 7

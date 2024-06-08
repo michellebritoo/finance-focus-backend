@@ -8,8 +8,7 @@ private const val GOAL_PREXIF = "GOAL:"
 
 data class CreateGoalRequest(
     var id: String = GOAL_PREXIF + UUID.randomUUID().toString(),
-    @field:NotBlank(message = "Realize login para completar a solicitacao")
-    var userUID: String,
+    var userUID: String? = null,
     var depositId: String = "",
     @field:NotBlank(message = "Por favor, informe um nome")
     var name: String,

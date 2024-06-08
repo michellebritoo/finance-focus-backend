@@ -31,6 +31,17 @@ class GoalRepository {
         return null
     }
 
+    fun getGoalsByUser(userId: String): List<CreateGoalRequest>? {
+        val list = firestore.collection(GOALS_COLLECTION).whereEqualTo("userUID", userId).get().get()
+        return if (list.documents.isNotEmpty()) {
+            list.documents.map { document ->
+                Gson().fromJson(Gson().toJson(document.data), CreateGoalRequest::class.java)
+            }
+        } else {
+            listOf()
+        }
+    }
+
     fun updateGoal(goalModel: UpdateGoalRequest) {
         firestore.collection(GOALS_COLLECTION).document(goalModel.id).update(goalModel.toMap())
     }
