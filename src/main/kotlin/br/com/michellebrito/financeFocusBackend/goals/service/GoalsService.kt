@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.concurrent.ExecutionException
 import kotlin.math.abs
 
 @Service
@@ -26,18 +25,20 @@ class GoalsService {
     @Autowired
     private lateinit var authService: AuthService
 
-    @Throws(ExecutionException::class, InterruptedException::class)
     fun createGoal(model: CreateGoalRequest) {
         checkInvalidDateInterval(model.initDate, model.finishDate)
         checkGoalValueToCreate(model.totalValue)
-        model.depositId = depositService.generateGoalDeposits(
-            model.monthFrequency,
-            model.gradualProgress,
-            model.totalValue,
-            model.initDate,
-            model.finishDate
-        )
-        model.remainingValue = model.totalValue
+        model.apply {
+            depositId = depositService.generateGoalDeposits(
+                model.monthFrequency,
+                model.gradualProgress,
+                model.totalValue,
+                model.initDate,
+                model.finishDate
+            )
+            userUID = getUserUIDByToken()
+            remainingValue = model.totalValue
+        }
         repository.createGoal(model)
     }
 
