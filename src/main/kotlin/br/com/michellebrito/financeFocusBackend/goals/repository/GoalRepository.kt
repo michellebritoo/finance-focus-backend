@@ -42,7 +42,6 @@ class GoalRepository {
         }
     }
 
-
     fun updateGoal(goalModel: UpdateGoalRequest) {
         firestore.collection(GOALS_COLLECTION).document(goalModel.id).update(goalModel.toMap())
     }
