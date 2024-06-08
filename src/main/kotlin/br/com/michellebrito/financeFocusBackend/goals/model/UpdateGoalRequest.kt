@@ -5,8 +5,7 @@ import jakarta.validation.constraints.NotBlank
 data class UpdateGoalRequest(
     @field:NotBlank(message = "Informe um id")
     var id: String,
-    @field:NotBlank(message = "Realize login para completar a solicitacao")
-    var userUID: String,
+    var userUID: String? = null,
     var name: String? = null,
     var description: String? = null,
     var totalValue: Float? = null,
