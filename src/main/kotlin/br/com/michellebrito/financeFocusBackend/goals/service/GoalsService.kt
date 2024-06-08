@@ -43,14 +43,14 @@ class GoalsService {
 
     fun getGoal(id: String): String {
         val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java) ?: throw IllegalArgumentException("Objetivo não encontrado")
-        if (goal.userUID != authService.getUserUIDByToken()) {
+        if (goal.userUID != getUserUIDByToken()) {
             throw IllegalArgumentException("Objetivo não pertence ao usuário")
         }
         return Gson().toJson(goal)
     }
 
     fun getGoalsByUser(): String? {
-        val userID = authService.getUserUIDByToken()
+        val userID = getUserUIDByToken()
         val goalList = repository.getGoalsByUser(userID)
         val filteredList = goalList?.filter { it.userUID == userID }
         return Gson().toJson(filteredList)
@@ -109,8 +109,13 @@ class GoalsService {
 
     fun deleteGoal(id: String) {
         val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java)
-        depositService.deleteDeposits(goal)
-        repository.deleteGoal(id)
+        goal?.let {
+            if (goal.userUID != getUserUIDByToken()) {
+                throw IllegalArgumentException("Objetivo não pertence ao usuário")
+            }
+            depositService.deleteDeposits(goal)
+            repository.deleteGoal(id)
+        }
     }
 
     private fun checkInvalidDateInterval(init: String, finish: String): Boolean {
@@ -162,6 +167,8 @@ class GoalsService {
             throw IllegalArgumentException("Esse objetivo já foi concluído")
         }
     }
+
+    private fun getUserUIDByToken() = authService.getUserUIDByToken()
 
     private companion object {
         const val MIN_DAYS = 7
