@@ -17,7 +17,6 @@ class AuthService(private val firebaseAuth: FirebaseAuth) {
     }
 
     fun getUserUIDByToken(): String {
-        firebaseAuth.verifyIdToken(token).uid
-        return ""
+        return firebaseAuth.verifyIdToken(token).uid
     }
 }

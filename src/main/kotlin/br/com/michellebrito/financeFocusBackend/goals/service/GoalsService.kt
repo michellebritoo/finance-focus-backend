@@ -1,7 +1,6 @@
-@file:Suppress("ThrowableNotThrown")
-
 package br.com.michellebrito.financeFocusBackend.goals.service
 
+import br.com.michellebrito.financeFocusBackend.auth.service.AuthService
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.service.DepositService
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
@@ -18,10 +17,13 @@ import kotlin.math.abs
 @Service
 class GoalsService {
     @Autowired
-    lateinit var repository: GoalRepository
+    private lateinit var repository: GoalRepository
 
     @Autowired
-    lateinit var depositService: DepositService
+    private lateinit var depositService: DepositService
+
+    @Autowired
+    private lateinit var authService: AuthService
 
     @Throws(ExecutionException::class, InterruptedException::class)
     fun createGoal(model: CreateGoalRequest) {
@@ -39,7 +41,11 @@ class GoalsService {
     }
 
     fun getGoal(id: String): String {
-        return repository.getGoal(id) ?: throw IllegalArgumentException("Objetivo não encontrado")
+        val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java) ?: throw IllegalArgumentException("Objetivo não encontrado")
+        if (goal.userUID != authService.getUserUIDByToken()) {
+            throw IllegalArgumentException("Objetivo não pertence ao usuário")
+        }
+        return Gson().toJson(goal)
     }
 
     fun updateGoal(model: UpdateGoalRequest) {
