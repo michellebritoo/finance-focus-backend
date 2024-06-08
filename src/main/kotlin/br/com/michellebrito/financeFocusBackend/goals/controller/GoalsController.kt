@@ -2,6 +2,7 @@ package br.com.michellebrito.financeFocusBackend.goals.controller
 
 import br.com.michellebrito.financeFocusBackend.goals.controller.GoalsController.Routes.GOAL
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
+import br.com.michellebrito.financeFocusBackend.goals.model.IncrementGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.model.UpdateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.service.GoalsService
 import jakarta.validation.Valid
@@ -32,9 +33,19 @@ class GoalsController {
         return ResponseEntity.ok(service.getGoal(id))
     }
 
+    @GetMapping(LIST)
+    fun getGoalsByUser(@NotBlank @RequestParam userUID: String): ResponseEntity<String> {
+        return ResponseEntity.ok(service.getGoalsByUser(userUID))
+    }
+
     @PostMapping(UPDATE)
     fun updateGoal(@Valid @RequestBody updateGoalRequestModel: UpdateGoalRequest) {
         service.updateGoal(updateGoalRequestModel)
+    }
+
+    @PostMapping(INCREMENT)
+    fun incrementGoal(@Valid @RequestBody incrementGoalRequest: IncrementGoalRequest) {
+        service.incrementGoal(incrementGoalRequest)
     }
 
     @DeleteMapping(DELETE)
@@ -44,7 +55,9 @@ class GoalsController {
 
     companion object Routes {
         const val GOAL = "/goal"
+        const val LIST = "/list"
         const val UPDATE = "/update"
+        const val INCREMENT = "/increment"
         const val CREATE = "/create"
         const val DELETE = "/delete"
     }
