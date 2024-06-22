@@ -1,6 +1,7 @@
 package br.com.michellebrito.financeFocusBackend.userinfo.service
 
 import br.com.michellebrito.financeFocusBackend.auth.service.AuthService
+import br.com.michellebrito.financeFocusBackend.userinfo.model.EditUserDetailsModel
 import br.com.michellebrito.financeFocusBackend.userinfo.model.UserDetailsModel
 import br.com.michellebrito.financeFocusBackend.userinfo.repository.UserInfoRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,5 +15,10 @@ class UserInfoService(private val authService: AuthService) {
     fun getUserDetails(): UserDetailsModel {
         val uuid = authService.getUserUIDByToken()
         return repository.getUserDetails(uuid)
+    }
+
+    fun updateUserDetails(editUserDetailsModel: EditUserDetailsModel) {
+        val uuid = authService.getUserUIDByToken()
+        repository.updateUserDetails(editUserDetailsModel, uuid)
     }
 }
