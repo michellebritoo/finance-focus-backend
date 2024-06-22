@@ -57,6 +57,11 @@ class GoalsService {
         return Gson().toJson(filteredList)
     }
 
+    fun countCompleteGoalsByUser(): Int {
+        val userUID = authService.getUserUIDByToken()
+        return repository.getGoalsByUser(userUID)?.count { it.concluded } ?: 0
+    }
+
     fun updateGoal(model: UpdateGoalRequest) {
         val existingGoal = Gson().fromJson(getGoal(model.id), CreateGoalRequest::class.java)
         val existingDeposits = Gson().fromJson(depositService.getDeposits(existingGoal.depositId), DepositModel::class.java)
