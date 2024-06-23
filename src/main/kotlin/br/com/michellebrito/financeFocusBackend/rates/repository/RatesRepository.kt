@@ -10,7 +10,12 @@ import org.springframework.web.client.getForObject
 class RatesRepository {
     private val restTemplate = RestTemplate()
 
-    fun getRates(code: CodeRatesMonth): List<RateResponseModel>? {
-        return restTemplate.getForObject("https://api.bcb.gov.br/dados/serie/bcdata.sgs.${code.id}/dados?formato=json")
+    fun getLastMonthRate(code: CodeRatesMonth): List<RateResponseModel>? {
+        val ratesDB: List<RateResponseModel>? = restTemplate.getForObject("https://api.bcb.gov.br/dados/serie/bcdata.sgs.${code.id}/dados?formato=json")
+        return ratesDB?.takeLast(LAST_THREE_REGISTERS)
+    }
+    
+    private companion object {
+        const val LAST_THREE_REGISTERS = 3
     }
 }

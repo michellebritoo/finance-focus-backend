@@ -13,7 +13,7 @@ class RatesService {
     private lateinit var repository: RatesRepository
 
     fun calculateRatesByMonth(model: RatesMonthModel): List<RateResponseModel>? {
-        val rates = repository.getRates(CodeRatesMonth.HOUSE_CREDIT)
+        val rates = repository.getLastMonthRate(CodeRatesMonth.HOUSE_CREDIT)
         return rates
     }
 }
