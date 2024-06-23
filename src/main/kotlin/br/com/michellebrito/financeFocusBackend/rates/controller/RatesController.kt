@@ -2,6 +2,7 @@ package br.com.michellebrito.financeFocusBackend.rates.controller
 
 import br.com.michellebrito.financeFocusBackend.rates.controller.RatesController.Companion.RATES
 import br.com.michellebrito.financeFocusBackend.rates.model.RatesMonthModel
+import br.com.michellebrito.financeFocusBackend.rates.model.RatesStatusModel
 import br.com.michellebrito.financeFocusBackend.rates.service.RatesService
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,7 +19,7 @@ class RatesController {
     private lateinit var service: RatesService
 
     @PostMapping(CALCULATE_MONTH)
-    fun calculateRatesByMonth(@Valid @RequestBody model: RatesMonthModel): ResponseEntity<Any> {
+    fun calculateRatesByMonth(@Valid @RequestBody model: RatesMonthModel): ResponseEntity<RatesStatusModel> {
         return ResponseEntity.ok(service.calculateRatesByMonth(model))
     }
 
