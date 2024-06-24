@@ -7,6 +7,8 @@ import br.com.michellebrito.financeFocusBackend.rates.model.RatesStatusModel
 import br.com.michellebrito.financeFocusBackend.rates.repository.RatesRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 @Service
 class RatesService {
@@ -18,25 +20,26 @@ class RatesService {
             CodeRatesMonth.fromIndex(model.index)
         )
 
-        val status = getStatusBasedOnInterest(model.rateValue, rates)
-
         return RatesStatusModel(
             amount = model.amount,
             rateValue = formatRateValueToPercent(model.rateValue),
-            status = status,
+            status = getStatusByRate(model.rateValue, rates),
             lastRates = rates,
         )
     }
 
-    private fun getStatusBasedOnInterest(rateValue: Double, rateResponseModelList: List<RateResponseModel>): String {
-        val referenceValue = rateResponseModelList.map { it.valor }.average().div(100.0)
-        val tolerance = 0.01
+    fun getStatusByRate(rateValue: Double, ratesList: List<RateResponseModel>): String {
+        val meanValue = ratesList.map { it.value }.average()
+        val standardDeviation = sqrt(ratesList.map { (it.value - meanValue).pow(2.0) }.average())
+        val generalLimit = 1.5 * meanValue
+
         return when {
-            rateValue > referenceValue + tolerance -> "A taxa de juros apresentada está acima da média dos últimos 3 registros do Banco Central do Brasil"
-            rateValue < referenceValue - tolerance -> "A taxa de juros apresentada está abaixo da média dos últimos 3 registros do Banco Central do Brasil"
+            rateValue > standardDeviation + generalLimit -> "A taxa de juros apresentada está significativamente mais alta que os últimos 3 registros do Banco Central do Brasil"
+            rateValue > meanValue + standardDeviation -> "A taxa de juros apresentada está acima da média dos últimos 3 registros do Banco Central do Brasil"
+            rateValue < meanValue - standardDeviation -> "A taxa de juros apresentada está abaixo da média dos últimos 3 registros do Banco Central do Brasil"
             else -> "A taxa de juros apresentada está na faixa média dos últimos 3 registros do Banco Central do Brasil"
         }
     }
 
-    private fun formatRateValueToPercent(value: Double) = "${value.times(100)} %"
+    private fun formatRateValueToPercent(value: Double) = "$value %"
 }

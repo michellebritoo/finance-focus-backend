@@ -1,6 +1,10 @@
 package br.com.michellebrito.financeFocusBackend.rates.model
 
+import com.google.gson.annotations.SerializedName
+
 data class RateResponseModel(
-    val data: String,
-    val valor: Double
+    @SerializedName("data")
+    val date: String,
+    @SerializedName("valor")
+    val value: Double
 )
