@@ -16,9 +16,8 @@ class RatesService {
     private lateinit var repository: RatesRepository
 
     fun calculateRatesByMonth(model: RatesMonthModel): RatesStatusModel {
-        val rates: List<RateResponseModel> = repository.getLastMonthRate(
-            CodeRatesMonth.fromIndex(model.index)
-        )
+        validateModel(model)
+        val rates = repository.getLastMonthRate(CodeRatesMonth.fromIndex(model.factor))
 
         return RatesStatusModel(
             amount = model.amount,
@@ -26,6 +25,12 @@ class RatesService {
             status = getStatusByRate(model.rateValue, rates),
             lastRates = rates,
         )
+    }
+
+    private fun validateModel(model: RatesMonthModel) = with(model) {
+        if (amount <= 0) throw IllegalArgumentException("O valor deve ser maior que zero")
+        if (rateValue <= 0) throw IllegalArgumentException("A taxa de juros deve ser maior que zero")
+        if (time <= 0) throw IllegalArgumentException("O numero de semanas deve ser maior que zero")
     }
 
     fun getStatusByRate(rateValue: Double, ratesList: List<RateResponseModel>): String {
