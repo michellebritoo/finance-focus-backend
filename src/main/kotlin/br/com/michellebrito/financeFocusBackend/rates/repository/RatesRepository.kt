@@ -24,12 +24,8 @@ class RatesRepository {
 
     fun getLastMonthRate(code: CodeRatesMonth): List<RateResponseModel> {
         return try {
-//            val ratesDB: String? = restTemplate.getForObject(
-//                "https://api.bcb.gov.br/dados/serie/bcdata.sgs.${code.id}/dados?formato=json"
-//            )
-
             val ratesDB: String? = restTemplate.getForObject(
-                "https://api.invalid"
+                "https://api.bcb.gov.br/dados/serie/bcdata.sgs.${code.id}/dados?formato=json"
             )
 
             val listType = object : TypeToken<List<RateResponseModel>>() {}.type
