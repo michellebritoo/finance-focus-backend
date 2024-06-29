@@ -39,7 +39,6 @@ class RatesRepository {
                 rateResponseModelList.takeLast(LAST_THREE_REGISTERS)
             }
         } catch (e: Exception) {
-            println("contingencia")
             getLastMonthRateFromContingency(code).takeLast(LAST_THREE_REGISTERS)
         }
     }

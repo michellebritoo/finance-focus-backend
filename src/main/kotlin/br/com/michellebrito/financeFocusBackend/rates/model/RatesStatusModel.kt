@@ -5,6 +5,7 @@ data class RatesStatusModel(
     val rateValue: String,
     val status: String,
     val lastRates: List<RateResponseModel>,
-    val totalRateValue: Double,
-    val totalValueWithRate: Double
+    val partValue: Double,
+    val totalValueWithRate: Double,
+    val totalRate: Double
 )
