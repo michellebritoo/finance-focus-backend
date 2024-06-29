@@ -22,14 +22,16 @@ class RatesService {
         val rates = repository.getLastMonthRate(CodeRatesMonth.fromIndex(model.factor))
 
         val calculated = calculateRateMonth(model.amount, model.rateValue / 100, model.time)
+        val totalRate = calculated.second - model.amount
 
         return RatesStatusModel(
             amount = model.amount,
             rateValue = formatRateValueToPercent(model.rateValue),
             status = getStatusByRate(model.rateValue, rates),
             lastRates = rates,
-            totalRateValue = calculated.first,
-            totalValueWithRate = calculated.second
+            partValue = calculated.first,
+            totalValueWithRate = calculated.second,
+            totalRate = formatTwoDecimals(totalRate)
         )
     }
 
@@ -37,10 +39,7 @@ class RatesService {
         val installment = value * (rate * Math.pow(1 + rate, time.toDouble())) / (Math.pow(1 + rate, time.toDouble()) - 1)
         val totalWithRate = installment * time
 
-        val normalizedInstallment = BigDecimal(installment).setScale(2, RoundingMode.HALF_UP).toDouble()
-        val normalizedTotalValue = BigDecimal(totalWithRate).setScale(2, RoundingMode.HALF_UP).toDouble()
-
-        return Pair(normalizedInstallment, normalizedTotalValue)
+        return Pair(formatTwoDecimals(installment), formatTwoDecimals(totalWithRate))
     }
 
     private fun validateModel(model: RatesMonthModel) = with(model) {
@@ -63,4 +62,8 @@ class RatesService {
     }
 
     private fun formatRateValueToPercent(value: Double) = "$value %"
+
+    private fun formatTwoDecimals(value: Double): Double {
+        return BigDecimal(value).setScale(2, RoundingMode.HALF_UP).toDouble()
+    }
 }
