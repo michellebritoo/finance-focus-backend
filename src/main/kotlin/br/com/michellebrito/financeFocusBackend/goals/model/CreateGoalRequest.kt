@@ -10,7 +10,7 @@ data class CreateGoalRequest(
     var id: String = GOAL_PREXIF + UUID.randomUUID().toString(),
     var userUID: String? = null,
     var depositId: String = "",
-    @field:NotBlank(message = "Por favor, informe um nome")
+    @field:NotBlank(message = "Informe um nome")
     var name: String,
     var description: String? = null,
     @field:NotNull
@@ -18,9 +18,9 @@ data class CreateGoalRequest(
     var remainingValue: Float,
     var gradualProgress: Boolean = false,
     var monthFrequency: Boolean = true,
-    @field:NotBlank(message = "Por favor, informe uma data de início")
+    @field:NotBlank(message = "Informe uma data de início")
     var initDate: String,
-    @field:NotBlank(message = "Por favor, informe uma data de conclusão")
+    @field:NotBlank(message = "Informe uma data de conclusão")
     var finishDate: String,
     var concluded: Boolean = false
 )
