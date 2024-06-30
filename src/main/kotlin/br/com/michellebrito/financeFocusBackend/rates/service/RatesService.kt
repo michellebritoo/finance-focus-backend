@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.text.NumberFormat
+import java.util.*
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -22,17 +24,17 @@ class RatesService {
         validateModel(model)
         val rates = repository.getLastRateById(CodeRatesYear.fromIndex(model.factor))
 
-        val calculated = calculateRateAnnual(model.amount, model.rateValue / 100, model.time)
+        val calculated = calculateRateMonth(model.amount, model.rateValue / 100 / 12, model.time * 12)
         val totalRate = calculated.second - model.amount
 
         return RatesStatusModel(
-            amount = model.amount,
+            amount = formatCurrencyBRL(model.amount),
             rateValue = formatRateValueToPercent(model.rateValue),
             status = getStatusByRate(model.rateValue, rates),
             lastRates = rates,
-            partValue = calculated.first,
-            totalValueWithRate = calculated.second,
-            totalRate = formatTwoDecimals(totalRate)
+            partValue = formatCurrencyBRL(calculated.first),
+            totalValueWithRate = formatCurrencyBRL(calculated.second),
+            totalRate = formatCurrencyBRL(totalRate)
         )
     }
 
@@ -44,13 +46,13 @@ class RatesService {
         val totalRate = calculated.second - model.amount
 
         return RatesStatusModel(
-            amount = model.amount,
+            amount = formatCurrencyBRL(model.amount),
             rateValue = formatRateValueToPercent(model.rateValue),
             status = getStatusByRate(model.rateValue, rates),
             lastRates = rates,
-            partValue = calculated.first,
-            totalValueWithRate = calculated.second,
-            totalRate = formatTwoDecimals(totalRate)
+            partValue = formatCurrencyBRL(calculated.first),
+            totalValueWithRate = formatCurrencyBRL(calculated.second),
+            totalRate = formatCurrencyBRL(totalRate)
         )
     }
 
@@ -62,11 +64,11 @@ class RatesService {
     }
 
     fun calculateRateAnnual(amount: Double, rate: Double, time: Int): Pair<Double, Double> {
-        val partValue = amount * rate
-        val totalWithoutRate = partValue * time * 12
-        val totalWithRate = totalWithoutRate * (1 + rate).pow(time)
-        val installment = totalWithRate / (time * 12)
-        return Pair(installment, totalWithRate)
+        val months = 12
+        val totalWithRate = amount * (1 + rate / months).pow(months * time)
+        val installment = totalWithRate / (time * months)
+
+        return Pair(formatTwoDecimals(installment), formatTwoDecimals(totalWithRate))
     }
 
     private fun validateModel(model: RatesRequestModel) = with(model) {
@@ -92,5 +94,11 @@ class RatesService {
 
     private fun formatTwoDecimals(value: Double): Double {
         return BigDecimal(value).setScale(2, RoundingMode.HALF_UP).toDouble()
+    }
+
+    fun formatCurrencyBRL(value: Double): String {
+        val brazilianLocale = Locale("pt", "BR")
+        val numberFormat = NumberFormat.getCurrencyInstance(brazilianLocale)
+        return numberFormat.format(value)
     }
 }
