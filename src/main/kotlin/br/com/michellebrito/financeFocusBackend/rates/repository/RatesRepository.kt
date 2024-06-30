@@ -1,6 +1,5 @@
 package br.com.michellebrito.financeFocusBackend.rates.repository
 
-import br.com.michellebrito.financeFocusBackend.rates.model.CodeRatesMonth
 import br.com.michellebrito.financeFocusBackend.rates.model.RateResponseModel
 import com.google.cloud.firestore.Firestore
 import com.google.firebase.cloud.FirestoreClient
@@ -14,37 +13,37 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory
 @Repository
 class RatesRepository {
     private val firestore: Firestore = FirestoreClient.getFirestore()
+    private val gson = Gson()
     private val restTemplate = RestTemplate().apply {
         requestFactory = SimpleClientHttpRequestFactory().apply {
             setConnectTimeout(3000)
             setReadTimeout(3000)
         }
     }
-    private val gson = Gson()
 
-    fun getLastMonthRate(code: CodeRatesMonth): List<RateResponseModel> {
+    fun getLastRateById(id: String): List<RateResponseModel> {
         return try {
             val ratesDB: String? = restTemplate.getForObject(
-                "https://api.bcb.gov.br/dados/serie/bcdata.sgs.${code.id}/dados?formato=json"
+                "https://api.bcb.gov.br/dados/serie/bcdata.sgs.${id}/dados?formato=json"
             )
 
             val listType = object : TypeToken<List<RateResponseModel>>() {}.type
             val rateResponseModelList = ratesDB?.let { gson.fromJson<List<RateResponseModel>>(it, listType) }
 
-            rateResponseModelList?.let { saveDataContingency(code.id, it) }
+            rateResponseModelList?.let { saveDataContingency(id, it) }
 
             if (rateResponseModelList.isNullOrEmpty()) {
-                getLastMonthRateFromContingency(code).takeLast(LAST_THREE_REGISTERS)
+                getLastMonthRateFromContingency(id).takeLast(LAST_THREE_REGISTERS)
             } else {
                 rateResponseModelList.takeLast(LAST_THREE_REGISTERS)
             }
         } catch (e: Exception) {
-            getLastMonthRateFromContingency(code).takeLast(LAST_THREE_REGISTERS)
+            getLastMonthRateFromContingency(id).takeLast(LAST_THREE_REGISTERS)
         }
     }
 
-    fun getLastMonthRateFromContingency(code: CodeRatesMonth): List<RateResponseModel> {
-        val document = firestore.collection(CONTINGENCY).document(code.id).get().get()
+    private fun getLastMonthRateFromContingency(id: String): List<RateResponseModel> {
+        val document = firestore.collection(CONTINGENCY).document(id).get().get()
         val data = document.get("data") as List<Map<String, Any>>
         return data.map { map ->
             RateResponseModel(
