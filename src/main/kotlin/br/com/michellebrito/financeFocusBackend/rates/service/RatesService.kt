@@ -1,9 +1,10 @@
 package br.com.michellebrito.financeFocusBackend.rates.service
 
-import br.com.michellebrito.financeFocusBackend.rates.model.CodeRatesMonth
+import br.com.michellebrito.financeFocusBackend.rates.model.month.CodeRatesMonth
 import br.com.michellebrito.financeFocusBackend.rates.model.RateResponseModel
-import br.com.michellebrito.financeFocusBackend.rates.model.RatesMonthModel
+import br.com.michellebrito.financeFocusBackend.rates.model.RatesRequestModel
 import br.com.michellebrito.financeFocusBackend.rates.model.RatesStatusModel
+import br.com.michellebrito.financeFocusBackend.rates.model.year.CodeRatesYear
 import br.com.michellebrito.financeFocusBackend.rates.repository.RatesRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -17,9 +18,27 @@ class RatesService {
     @Autowired
     private lateinit var repository: RatesRepository
 
-    fun calculateRatesByMonth(model: RatesMonthModel): RatesStatusModel {
+    fun calculateRatesByYear(model: RatesRequestModel): RatesStatusModel {
         validateModel(model)
-        val rates = repository.getLastMonthRate(CodeRatesMonth.fromIndex(model.factor))
+        val rates = repository.getLastRateById(CodeRatesYear.fromIndex(model.factor))
+
+        val calculated = calculateRateAnnual(model.amount, model.rateValue / 100, model.time)
+        val totalRate = calculated.second - model.amount
+
+        return RatesStatusModel(
+            amount = model.amount,
+            rateValue = formatRateValueToPercent(model.rateValue),
+            status = getStatusByRate(model.rateValue, rates),
+            lastRates = rates,
+            partValue = calculated.first,
+            totalValueWithRate = calculated.second,
+            totalRate = formatTwoDecimals(totalRate)
+        )
+    }
+
+    fun calculateRatesByMonth(model: RatesRequestModel): RatesStatusModel {
+        validateModel(model)
+        val rates = repository.getLastRateById(CodeRatesMonth.fromIndex(model.factor))
 
         val calculated = calculateRateMonth(model.amount, model.rateValue / 100, model.time)
         val totalRate = calculated.second - model.amount
@@ -42,13 +61,21 @@ class RatesService {
         return Pair(formatTwoDecimals(installment), formatTwoDecimals(totalWithRate))
     }
 
-    private fun validateModel(model: RatesMonthModel) = with(model) {
+    fun calculateRateAnnual(amount: Double, rate: Double, time: Int): Pair<Double, Double> {
+        val partValue = amount * rate
+        val totalWithoutRate = partValue * time * 12
+        val totalWithRate = totalWithoutRate * (1 + rate).pow(time)
+        val installment = totalWithRate / (time * 12)
+        return Pair(installment, totalWithRate)
+    }
+
+    private fun validateModel(model: RatesRequestModel) = with(model) {
         if (amount <= 0) throw IllegalArgumentException("O valor deve ser maior que zero")
         if (rateValue <= 0) throw IllegalArgumentException("A taxa de juros deve ser maior que zero")
         if (time <= 0) throw IllegalArgumentException("O numero de semanas deve ser maior que zero")
     }
 
-    fun getStatusByRate(rateValue: Double, ratesList: List<RateResponseModel>): String {
+    private fun getStatusByRate(rateValue: Double, ratesList: List<RateResponseModel>): String {
         val meanValue = ratesList.map { it.value }.average()
         val standardDeviation = sqrt(ratesList.map { (it.value - meanValue).pow(2.0) }.average())
         val generalLimit = 1.5 * meanValue
