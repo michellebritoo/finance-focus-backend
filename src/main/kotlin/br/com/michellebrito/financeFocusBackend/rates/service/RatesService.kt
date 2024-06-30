@@ -24,7 +24,7 @@ class RatesService {
         validateModel(model)
         val rates = repository.getLastRateById(CodeRatesYear.fromIndex(model.factor))
 
-        val calculated = calculateRateMonth(model.amount, model.rateValue / 100 / 12, model.time * 12)
+        val calculated = calculateRateAnnual(model.amount, model.rateValue / 100 , model.time)
         val totalRate = calculated.second - model.amount
 
         return RatesStatusModel(
@@ -63,10 +63,14 @@ class RatesService {
         return Pair(formatTwoDecimals(installment), formatTwoDecimals(totalWithRate))
     }
 
-    fun calculateRateAnnual(amount: Double, rate: Double, time: Int): Pair<Double, Double> {
+    fun calculateRateAnnual(amount: Double, annualRate: Double, timeInYears: Int): Pair<Double, Double> {
         val months = 12
-        val totalWithRate = amount * (1 + rate / months).pow(months * time)
-        val installment = totalWithRate / (time * months)
+        val totalPeriods = timeInYears * months
+        val monthlyRate = annualRate / months
+
+        val totalWithRate = amount * (1 + monthlyRate).pow(totalPeriods)
+
+        val installment = totalWithRate / totalPeriods
 
         return Pair(formatTwoDecimals(installment), formatTwoDecimals(totalWithRate))
     }
