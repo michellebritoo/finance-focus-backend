@@ -1,6 +1,5 @@
 package br.com.michellebrito.financeFocusBackend.rates.repository
 
-import br.com.michellebrito.financeFocusBackend.auth.service.AuthService
 import br.com.michellebrito.financeFocusBackend.rates.model.RateResponseModel
 import br.com.michellebrito.financeFocusBackend.userinfo.repository.UserInfoRepository
 import com.google.cloud.firestore.Firestore
