@@ -1,5 +1,6 @@
 package br.com.michellebrito.financeFocusBackend.goals.controller
 
+import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
 import br.com.michellebrito.financeFocusBackend.goals.controller.GoalsController.Routes.GOAL
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.model.IncrementGoalRequest
@@ -43,6 +44,11 @@ class GoalsController {
         service.updateGoal(updateGoalRequestModel)
     }
 
+    @GetMapping(PRE_INCREMENT)
+    fun preIncrement(@Valid @RequestHeader id: String): ResponseEntity<MutableList<ExpectedDeposit>> {
+        return ResponseEntity.ok(service.preIncrement(id))
+    }
+
     @PostMapping(INCREMENT)
     fun incrementGoal(@Valid @RequestBody incrementGoalRequest: IncrementGoalRequest) {
         service.incrementGoal(incrementGoalRequest)
@@ -58,6 +64,7 @@ class GoalsController {
         const val LIST = "/list"
         const val UPDATE = "/update"
         const val INCREMENT = "/increment"
+        const val PRE_INCREMENT = "/pre/increment"
         const val CREATE = "/create"
         const val DELETE = "/delete"
     }

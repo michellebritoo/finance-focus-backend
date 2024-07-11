@@ -2,6 +2,7 @@ package br.com.michellebrito.financeFocusBackend.goals.service
 
 import br.com.michellebrito.financeFocusBackend.auth.service.AuthService
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
+import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
 import br.com.michellebrito.financeFocusBackend.deposit.service.DepositService
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.model.IncrementGoalRequest
@@ -101,6 +102,13 @@ class GoalsService {
         } else {
             repository.updateGoal(model)
         }
+    }
+
+    fun preIncrement(id: String): MutableList<ExpectedDeposit> {
+        val goal = Gson().fromJson(getGoal(id), CreateGoalRequest::class.java)
+        val expectedDeposit = Gson().fromJson(depositService.getDeposits(goal.depositId), DepositModel::class.java)
+
+        return  expectedDeposit.expectedDepositList
     }
 
     fun incrementGoal(model: IncrementGoalRequest) {
