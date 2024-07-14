@@ -51,7 +51,13 @@ class DepositService {
         val diff = getDiffDates(init, finish, monthFrequency)
         val baseDepositValue = amount / diff
 
-        return createDepositModel(amount, baseDepositValue, diff.toInt())
+        val deposit = createDepositModel(amount, baseDepositValue, diff.toInt())
+        for (i in 1..diff) {
+            val currentExpectedDeposit = ExpectedDeposit(depositId = deposit.id, value = baseDepositValue, completed = false)
+            repository.createExpectedDeposit(currentExpectedDeposit)
+            deposit.expectedDepositList.add(currentExpectedDeposit)
+        }
+        return deposit
     }
 
     private fun generateGoalDepositsGradualValue(
@@ -96,5 +102,13 @@ class DepositService {
             lastDeposit = -1,
             lastDepositDate = ""
         )
+    }
+
+    fun updateExpectedDeposit(deposit: ExpectedDeposit) {
+        repository.updateExpectedDeposit(deposit)
+    }
+
+    fun updateDeposit(deposit: DepositModel) {
+        repository.updateDeposit(deposit)
     }
 }

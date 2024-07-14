@@ -8,11 +8,11 @@ enum class CodeRatesYear(val id: String) {
 
     companion object {
         fun fromIndex(index: Int): String {
-            return when(index) {
-                1 -> CREDIT.id
-                2 -> OTHER_ITEMS.id
-                3 -> VEHICLE_CREDIT.id
-                else -> HOUSE_CREDIT.id
+            return when (index) {
+                1 -> VEHICLE_CREDIT.id
+                2 -> HOUSE_CREDIT.id
+                3 -> OTHER_ITEMS.id
+                else -> CREDIT.id
             }
         }
     }
