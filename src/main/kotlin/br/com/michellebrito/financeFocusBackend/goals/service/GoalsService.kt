@@ -8,6 +8,7 @@ import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.model.IncrementGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.model.UpdateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.repository.GoalRepository
+import br.com.michellebrito.financeFocusBackend.userinfo.service.UserInfoService
 import com.google.gson.Gson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -25,6 +26,9 @@ class GoalsService {
 
     @Autowired
     private lateinit var authService: AuthService
+
+    @Autowired
+    private lateinit var userInfoService: UserInfoService
 
     fun createGoal(model: CreateGoalRequest) {
         checkInvalidDateInterval(model.initDate, model.finishDate)
@@ -140,6 +144,7 @@ class GoalsService {
 
         if (goal.remainingValue == 0f) {
             goal.concluded = true
+            userInfoService.incrementUserGoals()
         }
 
         repository.incrementGoal(model.id, goal.remainingValue, goal.concluded)
