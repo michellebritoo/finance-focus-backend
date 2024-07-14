@@ -29,9 +29,15 @@ class UserInfoController {
         service.updateUserDetails(editUserDetailsModel)
     }
 
+    @PostMapping(CREATE)
+    fun createUser() {
+         service.registerNewUser()
+    }
+
     companion object {
         const val USER = "/user"
         const val DETAILS = "/details"
         const val UPDATE = "/update"
+        const val CREATE = "/create"
     }
 }

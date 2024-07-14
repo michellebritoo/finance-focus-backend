@@ -1,6 +1,7 @@
 package br.com.michellebrito.financeFocusBackend.rates.repository
 
 import br.com.michellebrito.financeFocusBackend.rates.model.RateResponseModel
+import br.com.michellebrito.financeFocusBackend.userinfo.repository.UserInfoRepository
 import com.google.cloud.firestore.Firestore
 import com.google.firebase.cloud.FirestoreClient
 import org.springframework.stereotype.Repository
@@ -8,6 +9,7 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.getForObject
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 
 @Repository
@@ -21,7 +23,11 @@ class RatesRepository {
         }
     }
 
+    @Autowired
+    private lateinit var userInfoRepository: UserInfoRepository
+
     fun getLastRateById(id: String): List<RateResponseModel> {
+        userInfoRepository.incrementUserRateSimulation()
         return try {
             val ratesDB: String? = restTemplate.getForObject(
                 "https://api.bcb.gov.br/dados/serie/bcdata.sgs.${id}/dados?formato=json"

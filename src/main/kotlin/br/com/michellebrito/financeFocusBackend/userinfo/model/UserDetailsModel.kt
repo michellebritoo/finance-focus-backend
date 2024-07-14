@@ -1,7 +1,8 @@
 package br.com.michellebrito.financeFocusBackend.userinfo.model
 
 data class UserDetailsModel(
-    val name: String,
-    val email: String,
-    val completedGoals: Int
+    var name: String,
+    var email: String,
+    val concludedGoals: Int = 0,
+    val rateSimulation: Int = 0
 )

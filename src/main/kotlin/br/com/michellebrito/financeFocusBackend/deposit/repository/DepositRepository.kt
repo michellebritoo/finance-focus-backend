@@ -44,6 +44,16 @@ class DepositRepository {
         }
     }
 
+    fun updateExpectedDeposit(deposit: ExpectedDeposit) {
+        val documentReference = firestore.collection(EXPECTED_DEPOSITS).document(deposit.id)
+        documentReference.set(deposit)
+    }
+
+    fun updateDeposit(deposit: DepositModel) {
+        val documentReference = firestore.collection(DEPOSIT_COLLECTION).document(deposit.id)
+        documentReference.set(deposit)
+    }
+
     private companion object {
         const val DEPOSIT_COLLECTION = "deposits"
         const val EXPECTED_DEPOSITS = "expectedDeposits"

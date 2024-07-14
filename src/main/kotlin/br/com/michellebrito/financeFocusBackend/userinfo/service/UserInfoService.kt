@@ -21,4 +21,13 @@ class UserInfoService(private val authService: AuthService) {
         val uuid = authService.getUserUIDByToken()
         repository.updateUserDetails(editUserDetailsModel, uuid)
     }
+
+    fun incrementUserGoals() {
+        repository.incrementUserGoals()
+    }
+
+    fun registerNewUser() {
+        val uuid = authService.getUserUIDByToken()
+        repository.registerNewUser(uuid)
+    }
 }
