@@ -123,6 +123,21 @@ class GoalsService {
             userUID = getUserUIDByToken()
             remainingValue -= model.valueToIncrement
         }
+
+        val deposit = Gson().fromJson(depositService.getDeposits(goal.depositId), DepositModel::class.java)
+
+        val depositToComplete = deposit.expectedDepositList.firstOrNull { it.value == model.valueToIncrement && !it.completed }
+        depositToComplete?.let {
+            it.completed = true
+            depositService.updateExpectedDeposit(it)
+
+            val index = deposit.expectedDepositList.indexOf(it)
+            if (index != -1) {
+                deposit.expectedDepositList[index] = it
+                depositService.updateDeposit(deposit)
+            }
+        }
+
         if (goal.remainingValue == 0f) {
             goal.concluded = true
         }

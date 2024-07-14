@@ -103,4 +103,12 @@ class DepositService {
             lastDepositDate = ""
         )
     }
+
+    fun updateExpectedDeposit(deposit: ExpectedDeposit) {
+        repository.updateExpectedDeposit(deposit)
+    }
+
+    fun updateDeposit(deposit: DepositModel) {
+        repository.updateDeposit(deposit)
+    }
 }
