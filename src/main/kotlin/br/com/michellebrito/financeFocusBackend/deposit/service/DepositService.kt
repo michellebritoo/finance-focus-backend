@@ -1,10 +1,13 @@
 package br.com.michellebrito.financeFocusBackend.deposit.service
 
+import br.com.michellebrito.financeFocusBackend.deposit.model.Deposit
 import br.com.michellebrito.financeFocusBackend.deposit.repository.DepositRepository
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
 import br.com.michellebrito.financeFocusBackend.utils.extension.parseDates
+import com.google.cloud.firestore.Firestore
+import com.google.firebase.cloud.FirestoreClient
 import com.google.gson.Gson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -20,13 +23,15 @@ class DepositService {
     }
 
     fun deleteDeposits(goal: CreateGoalRequest) {
-        val deposit = Gson().fromJson(getDeposits(goal.depositId), DepositModel::class.java)
-
-        repository.deleteExpectedDepositByDepositId(deposit.id)
-        repository.deleteDeposit(deposit.id)
+        //todo: voltar depois
+//        val deposit = Gson().fromJson(getDeposits(goal.depositId), DepositModel::class.java)
+//
+//        repository.deleteExpectedDepositByDepositId(deposit.id)
+//        repository.deleteDeposit(deposit.id)
     }
 
     fun generateGoalDeposits(
+        goalId: String,
         monthFrequency: Boolean,
         gradualProgress: Boolean,
         amount: Float,
@@ -34,15 +39,17 @@ class DepositService {
         finish: String
     ): String {
         val createdDeposit = if (gradualProgress) {
-            generateGoalDepositsGradualValue(monthFrequency, amount, init, finish)
+            generateGoalDepositsGradualValue(goalId, monthFrequency, amount, init, finish)
         } else {
-            generateGoalDepositsFixedValue(monthFrequency, amount, init, finish)
+            generateGoalDepositsFixedValue(goalId, monthFrequency, amount, init, finish)
         }
-        repository.createDeposit(createdDeposit)
+        //repository.createDeposit(createdDeposit)
+
         return createdDeposit.id
     }
 
     private fun generateGoalDepositsFixedValue(
+        goalId: String,
         monthFrequency: Boolean,
         amount: Float,
         init: String,
@@ -54,13 +61,16 @@ class DepositService {
         val deposit = createDepositModel(amount, baseDepositValue, diff.toInt())
         for (i in 1..diff) {
             val currentExpectedDeposit = ExpectedDeposit(depositId = deposit.id, value = baseDepositValue, completed = false)
-            repository.createExpectedDeposit(currentExpectedDeposit)
+            //repository.createExpectedDeposit(currentExpectedDeposit)
             deposit.expectedDepositList.add(currentExpectedDeposit)
         }
+
+        repository.saveDepositsUnderGoal(goalId, deposit.expectedDepositList)
         return deposit
     }
 
     private fun generateGoalDepositsGradualValue(
+        goalId: String,
         monthFrequency: Boolean,
         amount: Float,
         init: String,
@@ -78,10 +88,13 @@ class DepositService {
                 currentDepositValue = remainingAmount
             }
             val currentExpectedDeposit = ExpectedDeposit(depositId = deposit.id, value = currentDepositValue, completed = false)
-            repository.createExpectedDeposit(currentExpectedDeposit)
+            //repository.createExpectedDeposit(currentExpectedDeposit)
+
             deposit.expectedDepositList.add(currentExpectedDeposit)
             remainingAmount -= currentDepositValue
         }
+
+        repository.saveDepositsUnderGoal(goalId, deposit.expectedDepositList)
         return deposit
     }
 
@@ -102,6 +115,16 @@ class DepositService {
             lastDeposit = -1,
             lastDepositDate = ""
         )
+    }
+
+    fun saveDepositsUnderGoal(goalId: String, depositList: List<Deposit>) {
+        val firestore: Firestore = FirestoreClient.getFirestore()
+        val goalRef = firestore.collection("goals").document(goalId)
+        val depositsRef = goalRef.collection("deposits")
+
+        depositList.forEach { deposit ->
+            depositsRef.add(deposit)
+        }
     }
 
     fun updateExpectedDeposit(deposit: ExpectedDeposit) {

@@ -1,5 +1,6 @@
 package br.com.michellebrito.financeFocusBackend.deposit.repository
 
+import br.com.michellebrito.financeFocusBackend.deposit.model.Deposit
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
 import com.google.api.core.ApiFuture
@@ -12,6 +13,16 @@ import org.springframework.stereotype.Repository
 @Repository
 class DepositRepository {
     private val firestore: Firestore = FirestoreClient.getFirestore()
+
+    fun saveDepositsUnderGoal(goalId: String, depositList: MutableList<ExpectedDeposit>) {
+        val goalRef = firestore.collection(GOALS_COLLECTION).document(goalId)
+        val depositsRef = goalRef.collection(DEPOSIT_COLLECTION)
+
+        depositList.forEach { deposit ->
+            depositsRef.add(deposit)
+        }
+    }
+
     fun createDeposit(model: DepositModel) {
         val collectionsFuture = firestore.collection(DEPOSIT_COLLECTION)
         collectionsFuture.document(model.id).set(model)
@@ -55,6 +66,7 @@ class DepositRepository {
     }
 
     private companion object {
+        const val GOALS_COLLECTION = "goals"
         const val DEPOSIT_COLLECTION = "deposits"
         const val EXPECTED_DEPOSITS = "expectedDeposits"
     }
