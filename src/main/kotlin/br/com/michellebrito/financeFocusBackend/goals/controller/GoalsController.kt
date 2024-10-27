@@ -44,10 +44,10 @@ class GoalsController {
         service.updateGoal(updateGoalRequestModel)
     }
 
-//    @GetMapping(PRE_INCREMENT)
-//    fun preIncrement(@Valid @RequestHeader id: String): ResponseEntity<MutableList<ExpectedDeposit>> {
-//        return ResponseEntity.ok(service.preIncrement(id))
-//    }
+    @GetMapping(PRE_INCREMENT)
+    fun preIncrement(@Valid @RequestHeader id: String): ResponseEntity<List<ExpectedDeposit>> {
+        return ResponseEntity.ok(service.preIncrement(id))
+    }
 
     @PostMapping(INCREMENT)
     fun incrementGoal(@Valid @RequestBody incrementGoalRequest: IncrementGoalRequest) {

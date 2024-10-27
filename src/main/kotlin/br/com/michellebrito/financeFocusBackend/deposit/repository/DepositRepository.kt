@@ -54,17 +54,6 @@ class DepositRepository {
         }
     }
 
-    fun deleteDeposit(id: String) {
-        firestore.collection(DEPOSIT_COLLECTION).document(id).delete()
-    }
-
-    fun deleteExpectedDepositByDepositId(id: String) {
-        val list = firestore.collection(EXPECTED_DEPOSITS).whereEqualTo("depositId", id).get().get()
-        list.documents.forEach {
-            firestore.collection(EXPECTED_DEPOSITS).document(it.id).delete()
-        }
-    }
-
     fun updateExpectedDeposit(goalId: String, deposit: ExpectedDeposit) {
         val depositsRef = firestore.collection(GOALS_COLLECTION).document(goalId).collection(DEPOSIT_COLLECTION)
         depositsRef.document(deposit.id).set(deposit)

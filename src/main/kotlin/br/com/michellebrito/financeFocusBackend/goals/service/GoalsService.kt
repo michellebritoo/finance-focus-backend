@@ -108,12 +108,9 @@ class GoalsService {
 //        }
     }
 
-//    fun preIncrement(id: String): MutableList<ExpectedDeposit> {
-////        val goal = Gson().fromJson(getGoal(id), CreateGoalRequest::class.java)
-////        val expectedDeposit = Gson().fromJson(depositService.getDeposits(goal.depositId), DepositModel::class.java)
-////
-////        return  expectedDeposit.expectedDepositList
-//    }
+    fun preIncrement(id: String): List<ExpectedDeposit> {
+        return depositService.getDeposits(id)
+    }
 
     fun incrementGoal(model: IncrementGoalRequest) {
         val goal = Gson().fromJson(getGoal(model.goalId), CreateGoalRequest::class.java)

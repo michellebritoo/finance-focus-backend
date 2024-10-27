@@ -3,7 +3,6 @@ package br.com.michellebrito.financeFocusBackend.deposit.service
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
 import br.com.michellebrito.financeFocusBackend.deposit.repository.DepositRepository
-import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
 import br.com.michellebrito.financeFocusBackend.goals.model.IncrementGoalRequest
 import br.com.michellebrito.financeFocusBackend.utils.extension.parseDates
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,8 +14,8 @@ class DepositService {
     @Autowired
     lateinit var repository: DepositRepository
 
-    fun getDeposits(id: String): List<ExpectedDeposit> {
-        return repository.getDeposit(id)
+    fun getDeposits(goalId: String): List<ExpectedDeposit> {
+        return repository.getDeposit(goalId)
     }
 
     fun generateGoalDeposits(
