@@ -19,7 +19,7 @@ class DepositRepository {
         val depositsRef = goalRef.collection(DEPOSIT_COLLECTION)
 
         depositList.forEach { deposit ->
-            depositsRef.add(deposit)
+            depositsRef.document(deposit.id).set(deposit)
         }
     }
 
@@ -33,15 +33,25 @@ class DepositRepository {
         collectionsFuture.document(model.id).set(model)
     }
 
-    fun getDeposit(id: String): String? {
-        val documentReference = firestore.collection(DEPOSIT_COLLECTION).document(id)
-        val collectionFuture: ApiFuture<DocumentSnapshot> = documentReference.get()
-        val document: DocumentSnapshot = collectionFuture.get()
+    fun getDeposit(goalId: String): List<ExpectedDeposit> {
+        val depositsRef = firestore.collection(GOALS_COLLECTION).document(goalId).collection(DEPOSIT_COLLECTION)
+        val depositList = mutableListOf<ExpectedDeposit>()
 
-        if (document.exists()) {
-            return Gson().toJson(document.data)
+        val documents = depositsRef.get().get().documents
+        for (document in documents) {
+            val json = Gson().toJson(document.data)
+            val deposit = Gson().fromJson(json, ExpectedDeposit::class.java)
+            depositList.add(deposit)
         }
-        return null
+        return depositList
+    }
+
+    fun updateDepositsUnderGoal(goalId: String, depositList: List<ExpectedDeposit>) {
+        val depositsRef = firestore.collection(GOALS_COLLECTION).document(goalId).collection(DEPOSIT_COLLECTION)
+
+        depositList.forEach { deposit ->
+            depositsRef.document(deposit.id).set(deposit)
+        }
     }
 
     fun deleteDeposit(id: String) {
@@ -55,9 +65,9 @@ class DepositRepository {
         }
     }
 
-    fun updateExpectedDeposit(deposit: ExpectedDeposit) {
-        val documentReference = firestore.collection(EXPECTED_DEPOSITS).document(deposit.id)
-        documentReference.set(deposit)
+    fun updateExpectedDeposit(goalId: String, deposit: ExpectedDeposit) {
+        val depositsRef = firestore.collection(GOALS_COLLECTION).document(goalId).collection(DEPOSIT_COLLECTION)
+        depositsRef.document(deposit.id).set(deposit)
     }
 
     fun updateDeposit(deposit: DepositModel) {

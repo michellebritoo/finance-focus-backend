@@ -18,7 +18,7 @@ class DepositService {
     @Autowired
     lateinit var repository: DepositRepository
 
-    fun getDeposits(id: String): String? {
+    fun getDeposits(id: String): List<ExpectedDeposit> {
         return repository.getDeposit(id)
     }
 
@@ -60,7 +60,7 @@ class DepositService {
 
         val deposit = createDepositModel(amount, baseDepositValue, diff.toInt())
         for (i in 1..diff) {
-            val currentExpectedDeposit = ExpectedDeposit(depositId = deposit.id, value = baseDepositValue, completed = false)
+            val currentExpectedDeposit = ExpectedDeposit(value = baseDepositValue, completed = false)
             //repository.createExpectedDeposit(currentExpectedDeposit)
             deposit.expectedDepositList.add(currentExpectedDeposit)
         }
@@ -87,7 +87,7 @@ class DepositService {
             if (currentDepositValue > remainingAmount) {
                 currentDepositValue = remainingAmount
             }
-            val currentExpectedDeposit = ExpectedDeposit(depositId = deposit.id, value = currentDepositValue, completed = false)
+            val currentExpectedDeposit = ExpectedDeposit(value = currentDepositValue, completed = false)
             //repository.createExpectedDeposit(currentExpectedDeposit)
 
             deposit.expectedDepositList.add(currentExpectedDeposit)
@@ -117,21 +117,19 @@ class DepositService {
         )
     }
 
-    fun saveDepositsUnderGoal(goalId: String, depositList: List<Deposit>) {
-        val firestore: Firestore = FirestoreClient.getFirestore()
-        val goalRef = firestore.collection("goals").document(goalId)
-        val depositsRef = goalRef.collection("deposits")
-
-        depositList.forEach { deposit ->
-            depositsRef.add(deposit)
-        }
+    fun saveExpectedDepositsUnderGoal(goalId: String, depositList: MutableList<ExpectedDeposit>) {
+        repository.saveDepositsUnderGoal(goalId, depositList)
     }
 
-    fun updateExpectedDeposit(deposit: ExpectedDeposit) {
-        repository.updateExpectedDeposit(deposit)
+    fun updateExpectedDeposit(goalId: String, deposit: ExpectedDeposit) {
+        repository.updateExpectedDeposit(goalId, deposit)
     }
 
     fun updateDeposit(deposit: DepositModel) {
         repository.updateDeposit(deposit)
+    }
+
+    fun updateDepositsUnderGoal(id: String, depositList: List<ExpectedDeposit>) {
+        repository.updateDepositsUnderGoal(id, depositList)
     }
 }

@@ -70,7 +70,8 @@ class GoalsService {
     }
 
     fun getGoal(id: String): String {
-        val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java) ?: throw IllegalArgumentException("Objetivo não encontrado")
+        val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java)
+            ?: throw IllegalArgumentException("Objetivo não encontrado")
         if (goal.userUID != getUserUIDByToken()) {
             throw IllegalArgumentException("Objetivo não pertence ao usuário")
         }
@@ -138,20 +139,55 @@ class GoalsService {
 //    }
 
     fun incrementGoal(model: IncrementGoalRequest) {
-//        val goal = Gson().fromJson(getGoal(model.id), CreateGoalRequest::class.java)
-//        checkConcludedGoal(goal.concluded)
-//        checkGoalValueToIncrement(goal.remainingValue, model.valueToIncrement)
-//
-//        if (goal.userUID != getUserUIDByToken()) {
-//            throw IllegalArgumentException("Objetivo não pertence ao usuário")
-//        }
-//        goal.apply {
-//            userUID = getUserUIDByToken()
-//            remainingValue -= model.valueToIncrement
-//        }
-//
-//        val deposit = Gson().fromJson(depositService.getDeposits(goal.depositId), DepositModel::class.java)
-//
+        val goal = Gson().fromJson(getGoal(model.goalId), CreateGoalRequest::class.java)
+        checkConcludedGoal(goal.concluded)
+        checkGoalValueToIncrement(goal.remainingValue, model.valueToIncrement)
+
+        if (goal.userUID != getUserUIDByToken()) {
+            throw IllegalArgumentException("Objetivo não pertence ao usuário")
+        }
+
+        goal.remainingValue -= model.valueToIncrement
+
+        val depositList = depositService.getDeposits(model.goalId)
+
+        val depositToComplete = depositList.filter { it.id == model.expectedDepositId }.firstOrNull()
+        depositToComplete?.let {
+            val remainingDeposits = depositList.filter { !it.completed }
+            val isLastDeposit = remainingDeposits.size == 1
+
+            if (isLastDeposit && it.value != model.valueToIncrement) {
+                throw IllegalArgumentException("O valor do último depósito deve ser igual ao valor esperado")
+            }
+
+            val differenceValue = it.value - model.valueToIncrement
+
+            if (differenceValue > 0f) {
+                it.value = model.valueToIncrement
+                it.completed = true
+                depositService.updateExpectedDeposit(goal.id, it)
+
+                val remainingDeposits = depositList.filter { !it.completed }
+                val additionalValuePerDeposit = differenceValue / remainingDeposits.size
+                remainingDeposits.forEach { deposit ->
+                    deposit.value += additionalValuePerDeposit
+                    depositService.updateExpectedDeposit(goal.id, deposit)
+                }
+            } else {
+                it.value = model.valueToIncrement
+                it.completed = true
+                depositService.updateExpectedDeposit(goal.id, it)
+            }
+        }
+
+        if (goal.remainingValue <= 0f) {
+            goal.remainingValue = 0f
+            goal.concluded = true
+            userInfoService.incrementUserGoals()
+        }
+
+        repository.incrementGoal(model.goalId, goal.remainingValue, goal.concluded)
+
 //        val depositToComplete = deposit.expectedDepositList.firstOrNull { it.value == model.valueToIncrement && !it.completed }
 //        depositToComplete?.let {
 //            it.completed = true
@@ -173,14 +209,14 @@ class GoalsService {
     }
 
     fun deleteGoal(id: String) {
-        val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java)
-        goal?.let {
-            if (goal.userUID != getUserUIDByToken()) {
-                throw IllegalArgumentException("Objetivo não pertence ao usuário")
-            }
-            depositService.deleteDeposits(goal)
-            repository.deleteGoal(id)
-        }
+//        val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java)
+//        goal?.let {
+//            if (goal.userUID != getUserUIDByToken()) {
+//                throw IllegalArgumentException("Objetivo não pertence ao usuário")
+//            }
+//            depositService.deleteDeposits(goal)
+//            repository.deleteGoal(id)
+//        }
     }
 
     private fun checkInvalidDateInterval(init: String, finish: String): Boolean {
