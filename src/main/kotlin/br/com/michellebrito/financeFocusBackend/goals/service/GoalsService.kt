@@ -35,13 +35,6 @@ class GoalsService {
         checkInvalidDateInterval(model.initDate, model.finishDate)
         checkGoalValueToCreate(model.totalValue)
         model.apply {
-//            depositId = depositService.generateGoalDeposits(
-//                model.monthFrequency,
-//                model.gradualProgress,
-//                model.totalValue,
-//                model.initDate,
-//                model.finishDate
-//            )
             userUID = getUserUIDByToken()
             remainingValue = model.totalValue
         }
@@ -50,28 +43,12 @@ class GoalsService {
         with(model) {
             depositService.generateGoalDeposits(id, monthFrequency, gradualProgress, totalValue, initDate, finishDate)
         }
-
-        //depositService.createDepositsUnderGoal(model.id, depositList)
-    }
-
-    private fun createDeposits(goalModel: CreateGoalRequest): List<Deposit> {
-        val depositList = mutableListOf<Deposit>()
-        val depositValue = goalModel.totalValue / 12
-
-        for (i in 0 until 12) {
-            val deposit = Deposit(
-                value = depositValue,
-                completed = false
-            )
-            depositList.add(deposit)
-        }
-
-        return depositList
     }
 
     fun getGoal(id: String): String {
         val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java)
             ?: throw IllegalArgumentException("Objetivo não encontrado")
+
         if (goal.userUID != getUserUIDByToken()) {
             throw IllegalArgumentException("Objetivo não pertence ao usuário")
         }
@@ -149,36 +126,7 @@ class GoalsService {
 
         goal.remainingValue -= model.valueToIncrement
 
-        val depositList = depositService.getDeposits(model.goalId)
-
-        val depositToComplete = depositList.filter { it.id == model.expectedDepositId }.firstOrNull()
-        depositToComplete?.let {
-            val remainingDeposits = depositList.filter { !it.completed }
-            val isLastDeposit = remainingDeposits.size == 1
-
-            if (isLastDeposit && it.value != model.valueToIncrement) {
-                throw IllegalArgumentException("O valor do último depósito deve ser igual ao valor esperado")
-            }
-
-            val differenceValue = it.value - model.valueToIncrement
-
-            if (differenceValue > 0f) {
-                it.value = model.valueToIncrement
-                it.completed = true
-                depositService.updateExpectedDeposit(goal.id, it)
-
-                val remainingDeposits = depositList.filter { !it.completed }
-                val additionalValuePerDeposit = differenceValue / remainingDeposits.size
-                remainingDeposits.forEach { deposit ->
-                    deposit.value += additionalValuePerDeposit
-                    depositService.updateExpectedDeposit(goal.id, deposit)
-                }
-            } else {
-                it.value = model.valueToIncrement
-                it.completed = true
-                depositService.updateExpectedDeposit(goal.id, it)
-            }
-        }
+        depositService.incrementDeposit(model)
 
         if (goal.remainingValue <= 0f) {
             goal.remainingValue = 0f
@@ -187,25 +135,6 @@ class GoalsService {
         }
 
         repository.incrementGoal(model.goalId, goal.remainingValue, goal.concluded)
-
-//        val depositToComplete = deposit.expectedDepositList.firstOrNull { it.value == model.valueToIncrement && !it.completed }
-//        depositToComplete?.let {
-//            it.completed = true
-//            depositService.updateExpectedDeposit(it)
-//
-//            val index = deposit.expectedDepositList.indexOf(it)
-//            if (index != -1) {
-//                deposit.expectedDepositList[index] = it
-//                depositService.updateDeposit(deposit)
-//            }
-//        }
-//
-//        if (goal.remainingValue == 0f) {
-//            goal.concluded = true
-//            userInfoService.incrementUserGoals()
-//        }
-//
-//        repository.incrementGoal(model.id, goal.remainingValue, goal.concluded)
     }
 
     fun deleteGoal(id: String) {

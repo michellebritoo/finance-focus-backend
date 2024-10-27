@@ -1,14 +1,11 @@
 package br.com.michellebrito.financeFocusBackend.deposit.service
 
-import br.com.michellebrito.financeFocusBackend.deposit.model.Deposit
-import br.com.michellebrito.financeFocusBackend.deposit.repository.DepositRepository
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
+import br.com.michellebrito.financeFocusBackend.deposit.repository.DepositRepository
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest
+import br.com.michellebrito.financeFocusBackend.goals.model.IncrementGoalRequest
 import br.com.michellebrito.financeFocusBackend.utils.extension.parseDates
-import com.google.cloud.firestore.Firestore
-import com.google.firebase.cloud.FirestoreClient
-import com.google.gson.Gson
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.temporal.ChronoUnit
@@ -43,7 +40,6 @@ class DepositService {
         } else {
             generateGoalDepositsFixedValue(goalId, monthFrequency, amount, init, finish)
         }
-        //repository.createDeposit(createdDeposit)
 
         return createdDeposit.id
     }
@@ -61,7 +57,6 @@ class DepositService {
         val deposit = createDepositModel(amount, baseDepositValue, diff.toInt())
         for (i in 1..diff) {
             val currentExpectedDeposit = ExpectedDeposit(value = baseDepositValue, completed = false)
-            //repository.createExpectedDeposit(currentExpectedDeposit)
             deposit.expectedDepositList.add(currentExpectedDeposit)
         }
 
@@ -88,7 +83,6 @@ class DepositService {
                 currentDepositValue = remainingAmount
             }
             val currentExpectedDeposit = ExpectedDeposit(value = currentDepositValue, completed = false)
-            //repository.createExpectedDeposit(currentExpectedDeposit)
 
             deposit.expectedDepositList.add(currentExpectedDeposit)
             remainingAmount -= currentDepositValue
@@ -119,6 +113,39 @@ class DepositService {
 
     fun saveExpectedDepositsUnderGoal(goalId: String, depositList: MutableList<ExpectedDeposit>) {
         repository.saveDepositsUnderGoal(goalId, depositList)
+    }
+
+    fun incrementDeposit(model: IncrementGoalRequest) {
+        val depositList = getDeposits(model.goalId)
+
+        val depositToComplete = depositList.firstOrNull { it.id == model.expectedDepositId }
+        depositToComplete?.let {
+            val remainingDeposits = depositList.filter { !it.completed }
+            val isLastDeposit = remainingDeposits.size == 1
+
+            if (isLastDeposit && it.value != model.valueToIncrement) {
+                throw IllegalArgumentException("O valor do último depósito deve ser igual ao valor esperado")
+            }
+
+            val differenceValue = it.value - model.valueToIncrement
+
+            if (differenceValue > 0f) {
+                it.value = model.valueToIncrement
+                it.completed = true
+                repository.updateExpectedDeposit(model.goalId, it)
+
+                val remainingDeposits = depositList.filter { !it.completed }
+                val additionalValuePerDeposit = differenceValue / remainingDeposits.size
+                remainingDeposits.forEach { deposit ->
+                    deposit.value += additionalValuePerDeposit
+                    repository.updateExpectedDeposit(model.goalId, deposit)
+                }
+            } else {
+                it.value = model.valueToIncrement
+                it.completed = true
+                repository.updateExpectedDeposit(model.goalId, it)
+            }
+        }
     }
 
     fun updateExpectedDeposit(goalId: String, deposit: ExpectedDeposit) {
