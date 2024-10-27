@@ -1,10 +1,7 @@
 package br.com.michellebrito.financeFocusBackend.deposit.repository
 
-import br.com.michellebrito.financeFocusBackend.deposit.model.Deposit
 import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
-import com.google.api.core.ApiFuture
-import com.google.cloud.firestore.DocumentSnapshot
 import com.google.cloud.firestore.Firestore
 import com.google.firebase.cloud.FirestoreClient
 import com.google.gson.Gson
@@ -23,16 +20,6 @@ class DepositRepository {
         }
     }
 
-    fun createDeposit(model: DepositModel) {
-        val collectionsFuture = firestore.collection(DEPOSIT_COLLECTION)
-        collectionsFuture.document(model.id).set(model)
-    }
-
-    fun createExpectedDeposit(model: ExpectedDeposit) {
-        val collectionsFuture = firestore.collection(EXPECTED_DEPOSITS)
-        collectionsFuture.document(model.id).set(model)
-    }
-
     fun getDeposit(goalId: String): List<ExpectedDeposit> {
         val depositsRef = firestore.collection(GOALS_COLLECTION).document(goalId).collection(DEPOSIT_COLLECTION)
         val depositList = mutableListOf<ExpectedDeposit>()
@@ -47,11 +34,12 @@ class DepositRepository {
     }
 
     fun updateDepositsUnderGoal(goalId: String, depositList: List<ExpectedDeposit>) {
-        val depositsRef = firestore.collection(GOALS_COLLECTION).document(goalId).collection(DEPOSIT_COLLECTION)
-
-        depositList.forEach { deposit ->
-            depositsRef.document(deposit.id).set(deposit)
-        }
+        //todo: igual ao save
+//        val depositsRef = firestore.collection(GOALS_COLLECTION).document(goalId).collection(DEPOSIT_COLLECTION)
+//
+//        depositList.forEach { deposit ->
+//            depositsRef.document(deposit.id).set(deposit)
+//        }
     }
 
     fun updateExpectedDeposit(goalId: String, deposit: ExpectedDeposit) {
@@ -67,6 +55,5 @@ class DepositRepository {
     private companion object {
         const val GOALS_COLLECTION = "goals"
         const val DEPOSIT_COLLECTION = "deposits"
-        const val EXPECTED_DEPOSITS = "expectedDeposits"
     }
 }

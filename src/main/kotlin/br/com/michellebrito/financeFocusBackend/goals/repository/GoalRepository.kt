@@ -60,12 +60,6 @@ class GoalRepository {
             "id" to id,
             "name" to name,
             "description" to description,
-            "totalValue" to totalValue,
-            "remainingValue" to remainingValue,
-            "gradualProgress" to gradualProgress,
-            "monthFrequency" to monthFrequency,
-            "initDate" to initDate,
-            "finishDate" to finishDate
         ).filterValues { it != null }
     }
 
