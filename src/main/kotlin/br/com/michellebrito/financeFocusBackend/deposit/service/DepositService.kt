@@ -19,14 +19,6 @@ class DepositService {
         return repository.getDeposit(id)
     }
 
-    fun deleteDeposits(goal: CreateGoalRequest) {
-        //todo: voltar depois
-//        val deposit = Gson().fromJson(getDeposits(goal.depositId), DepositModel::class.java)
-//
-//        repository.deleteExpectedDepositByDepositId(deposit.id)
-//        repository.deleteDeposit(deposit.id)
-    }
-
     fun generateGoalDeposits(
         goalId: String,
         monthFrequency: Boolean,

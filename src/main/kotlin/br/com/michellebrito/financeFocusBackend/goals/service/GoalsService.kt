@@ -138,14 +138,13 @@ class GoalsService {
     }
 
     fun deleteGoal(id: String) {
-//        val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java)
-//        goal?.let {
-//            if (goal.userUID != getUserUIDByToken()) {
-//                throw IllegalArgumentException("Objetivo não pertence ao usuário")
-//            }
-//            depositService.deleteDeposits(goal)
-//            repository.deleteGoal(id)
-//        }
+        val goal = Gson().fromJson(repository.getGoal(id), CreateGoalRequest::class.java)
+        goal?.let {
+            if (goal.userUID != getUserUIDByToken()) {
+                throw IllegalArgumentException("Objetivo não pertence ao usuário")
+            }
+            repository.deleteGoal(id)
+        }
     }
 
     private fun checkInvalidDateInterval(init: String, finish: String): Boolean {
