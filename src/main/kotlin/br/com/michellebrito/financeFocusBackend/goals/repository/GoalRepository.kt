@@ -70,7 +70,13 @@ class GoalRepository {
     }
 
     fun deleteGoal(id: String) {
-        firestore.collection(GOALS_COLLECTION).document(id).delete()
+        val documentReference = firestore.collection(GOALS_COLLECTION).document(id)
+
+        documentReference.listCollections().forEach {
+            it.get().get().documents.forEach { it.reference.delete().get() }
+        }
+
+        documentReference.delete().get()
     }
 
     private companion object {
