@@ -33,23 +33,9 @@ class DepositRepository {
         return depositList
     }
 
-    fun updateDepositsUnderGoal(goalId: String, depositList: List<ExpectedDeposit>) {
-        //todo: igual ao save
-//        val depositsRef = firestore.collection(GOALS_COLLECTION).document(goalId).collection(DEPOSIT_COLLECTION)
-//
-//        depositList.forEach { deposit ->
-//            depositsRef.document(deposit.id).set(deposit)
-//        }
-    }
-
     fun updateExpectedDeposit(goalId: String, deposit: ExpectedDeposit) {
         val depositsRef = firestore.collection(GOALS_COLLECTION).document(goalId).collection(DEPOSIT_COLLECTION)
         depositsRef.document(deposit.id).set(deposit)
-    }
-
-    fun updateDeposit(deposit: DepositModel) {
-        val documentReference = firestore.collection(DEPOSIT_COLLECTION).document(deposit.id)
-        documentReference.set(deposit)
     }
 
     private companion object {

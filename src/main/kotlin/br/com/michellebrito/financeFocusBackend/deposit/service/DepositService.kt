@@ -138,16 +138,4 @@ class DepositService {
             }
         }
     }
-
-    fun updateExpectedDeposit(goalId: String, deposit: ExpectedDeposit) {
-        repository.updateExpectedDeposit(goalId, deposit)
-    }
-
-    fun updateDeposit(deposit: DepositModel) {
-        repository.updateDeposit(deposit)
-    }
-
-    fun updateDepositsUnderGoal(id: String, depositList: List<ExpectedDeposit>) {
-        repository.updateDepositsUnderGoal(id, depositList)
-    }
 }

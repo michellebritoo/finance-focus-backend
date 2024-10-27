@@ -1,8 +1,6 @@
 package br.com.michellebrito.financeFocusBackend.goals.service
 
 import br.com.michellebrito.financeFocusBackend.auth.service.AuthService
-import br.com.michellebrito.financeFocusBackend.deposit.model.Deposit
-import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
 import br.com.michellebrito.financeFocusBackend.deposit.service.DepositService
 import br.com.michellebrito.financeFocusBackend.goals.model.CreateGoalRequest

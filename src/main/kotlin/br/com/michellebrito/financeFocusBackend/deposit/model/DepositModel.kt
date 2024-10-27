@@ -1,7 +1,6 @@
 package br.com.michellebrito.financeFocusBackend.deposit.model
 
-import org.jetbrains.annotations.NotNull
-import java.util.*
+import java.util.UUID
 
 private const val DEPOSIT_PREFIX = "DEPOSIT:"
 
