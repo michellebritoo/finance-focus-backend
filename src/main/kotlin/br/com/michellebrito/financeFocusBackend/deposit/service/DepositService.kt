@@ -120,7 +120,7 @@ class DepositService {
 
             val differenceValue = it.value - model.valueToIncrement
 
-            if (differenceValue > 0f) {
+            if (differenceValue != 0f) {
                 it.value = model.valueToIncrement
                 it.completed = true
                 repository.updateExpectedDeposit(model.goalId, it)
