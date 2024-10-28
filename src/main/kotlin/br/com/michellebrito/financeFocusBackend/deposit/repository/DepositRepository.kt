@@ -1,6 +1,5 @@
 package br.com.michellebrito.financeFocusBackend.deposit.repository
 
-import br.com.michellebrito.financeFocusBackend.deposit.model.DepositModel
 import br.com.michellebrito.financeFocusBackend.deposit.model.ExpectedDeposit
 import com.google.cloud.firestore.Firestore
 import com.google.firebase.cloud.FirestoreClient
