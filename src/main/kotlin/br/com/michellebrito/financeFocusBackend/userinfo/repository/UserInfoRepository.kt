@@ -72,10 +72,7 @@ class UserInfoRepository(private val firebaseAuth: FirebaseAuth) {
 
         firebaseAuth.updateUser(updateUser)
         firestore.collection(USERS_COLLECTION).document(userUID).update(
-            mapOf(
-                "email" to detailsModel.email,
-                "name" to detailsModel.name
-            )
+            detailsModel.toMap()
         )
     }
 
@@ -117,6 +114,13 @@ class UserInfoRepository(private val firebaseAuth: FirebaseAuth) {
 
     private fun isNameValid(name: String?): Boolean {
         return (name.toString().isEmpty() || name.isNullOrBlank()).not()
+    }
+
+    private fun EditUserDetailsModel.toMap(): Map<String, Any?> {
+        return mapOf(
+            "name" to name,
+            "email" to email
+        ).filterValues { it != null }
     }
 
     private companion object {
