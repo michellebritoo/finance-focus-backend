@@ -2,6 +2,7 @@ package br.com.michellebrito.financeFocusBackend.notification.service
 
 import br.com.michellebrito.financeFocusBackend.auth.service.AuthService
 import br.com.michellebrito.financeFocusBackend.userinfo.repository.UserInfoRepository
+import br.com.michellebrito.financeFocusBackend.utils.extension.isBlankOrEmpty
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.Message
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,7 +24,7 @@ class NotificationService {
     fun sendDailyNotification() {
         userInfoRepository.getAllUserUIDs().forEach {
             val deviceToken = userInfoRepository.getUserDeviceToken(it)
-            if (deviceToken != "") {
+            if (deviceToken.isBlankOrEmpty().not()) {
                 sendNotification(deviceToken, DEFAULT_TITLE, DEFAULT_MESSAGE)
             }
         }
@@ -46,6 +47,6 @@ class NotificationService {
 
     private companion object {
         const val DEFAULT_TITLE = "Opa! O apoio chegou \uD83D\uDCAA\uD83D\uDE80"
-        const val DEFAULT_MESSAGE = "Acesse agora mesmo e continue monitorando seus objetivos"
+        const val DEFAULT_MESSAGE = "Acesse o app agora mesmo e continue monitorando seus objetivos"
     }
 }

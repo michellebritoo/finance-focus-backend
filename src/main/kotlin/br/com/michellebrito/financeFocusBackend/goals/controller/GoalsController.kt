@@ -45,7 +45,7 @@ class GoalsController {
     }
 
     @GetMapping(PRE_INCREMENT)
-    fun preIncrement(@Valid @RequestHeader id: String): ResponseEntity<MutableList<ExpectedDeposit>> {
+    fun preIncrement(@Valid @RequestHeader id: String): ResponseEntity<List<ExpectedDeposit>> {
         return ResponseEntity.ok(service.preIncrement(id))
     }
 

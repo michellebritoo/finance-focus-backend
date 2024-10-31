@@ -11,6 +11,10 @@ fun String?.orFalse(): Boolean {
     return this != null
 }
 
+fun String?.isBlankOrEmpty(): Boolean {
+    return this == "" || this == " "
+}
+
 fun Pair<String, String>.parseDates(): Pair<LocalDate, LocalDate> {
     val format = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val date1 = LocalDate.parse(this.first, format)
